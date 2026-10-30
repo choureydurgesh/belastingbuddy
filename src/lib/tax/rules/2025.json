@@ -1,0 +1,154 @@
+{
+  "year": 2025,
+  "note": "Dutch income tax rules 2025. Sources: Belastingdienst tables, KVK, CijferMeester, Van Lanschot Kempen (checked 30 Oct 2026).",
+  "deadline": "2026-05-01",
+  "box1": {
+    "brackets": [
+      {
+        "upTo": 38441,
+        "rate": 0.3582
+      },
+      {
+        "upTo": 76817,
+        "rate": 0.3748
+      },
+      {
+        "upTo": null,
+        "rate": 0.495
+      }
+    ],
+    "maxDeductionRate": 0.3748
+  },
+  "generalTaxCredit": {
+    "max": 3068,
+    "phaseOutStart": 28406,
+    "phaseOutRate": 0.06337
+  },
+  "labourTaxCredit": {
+    "bands": [
+      {
+        "from": 0,
+        "to": 12169,
+        "base": 0,
+        "rate": 0.08053
+      },
+      {
+        "from": 12169,
+        "to": 26288,
+        "base": 980,
+        "rate": 0.3003
+      },
+      {
+        "from": 26288,
+        "to": 43071,
+        "base": 5220,
+        "rate": 0.02258
+      },
+      {
+        "from": 43071,
+        "to": 129078,
+        "base": 5599,
+        "rate": -0.0651
+      }
+    ]
+  },
+  "home": {
+    "forfaitBands": [
+      {
+        "upTo": 12500,
+        "rate": 0
+      },
+      {
+        "upTo": 25000,
+        "rate": 0.001
+      },
+      {
+        "upTo": 50000,
+        "rate": 0.002
+      },
+      {
+        "upTo": 75000,
+        "rate": 0.0025
+      },
+      {
+        "upTo": 1330000,
+        "rate": 0.0035
+      }
+    ],
+    "forfaitTop": {
+      "from": 1330000,
+      "base": 4655,
+      "rate": 0.0235
+    },
+    "lowDebtDeductionRate": 0.76667
+  },
+  "box3": {
+    "taxFreeAllowance": 57684,
+    "debtThreshold": 3800,
+    "returnSavings": 0.0137,
+    "returnOther": 0.0588,
+    "returnDebts": 0.027,
+    "rate": 0.36
+  },
+  "healthcare": {
+    "lowIncomeLimit": 8688,
+    "lowIncomeThreshold": 148,
+    "midIncomeLimit": 46142,
+    "midRate": 0.0165,
+    "highRate": 0.0575
+  },
+  "gifts": {
+    "minThreshold": 60,
+    "thresholdRate": 0.01,
+    "maxRate": 0.1
+  },
+  "aow": {
+    "box1FirstRate": 0.1792,
+    "generalTaxCredit": {
+      "max": 1536,
+      "phaseOutStart": 28406,
+      "phaseOutRate": 0.0317
+    },
+    "labourTaxCredit": {
+      "bands": [
+        {
+          "from": 0,
+          "to": 12169,
+          "base": 0,
+          "rate": 0.04029
+        },
+        {
+          "from": 12169,
+          "to": 26288,
+          "base": 491,
+          "rate": 0.15023
+        },
+        {
+          "from": 26288,
+          "to": 43071,
+          "base": 2612,
+          "rate": 0.0113
+        },
+        {
+          "from": 43071,
+          "to": 129078,
+          "base": 2802,
+          "rate": -0.03257
+        }
+      ]
+    },
+    "elderlyCredit": {
+      "max": 2035,
+      "phaseOutStart": 45308,
+      "phaseOutRate": 0.15
+    },
+    "singleElderlyCredit": 531
+  },
+  "business": {
+    "selfEmployedDeduction": 2470,
+    "smeExemptionRate": 0.127,
+    "hoursRequired": 1225,
+    "zvwRate": 0.0526,
+    "zvwMaxIncome": 75864
+  }
+}
