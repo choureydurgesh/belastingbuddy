@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { LangSwitch, T } from "@/lib/i18n";
 
 export function Logo() {
   return (
@@ -17,10 +20,15 @@ export function Nav() {
     <nav className="nav tile" aria-label="Main">
       <Logo />
       <div className="nav-links">
-        <Link href="/guides/">Guides</Link>
-        <Link href="/privacy/">Privacy</Link>
+        <Link href="/guides/">
+          <T>Guides</T>
+        </Link>
+        <Link href="/privacy/">
+          <T>Privacy</T>
+        </Link>
+        <LangSwitch />
         <Link href="/return/" className="btn btn-dark">
-          Start free
+          <T>Start free</T>
         </Link>
       </div>
     </nav>

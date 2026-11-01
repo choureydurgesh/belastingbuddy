@@ -28,7 +28,7 @@ p { margin: 0; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* ---------- Layout ---------- */
-.page { min-height: 100vh; padding: 24px clamp(16px, 4vw, 48px) 48px; }
+.page { min-height: 100vh; padding: 24px clamp(16px, 4vw, 48px) 96px; }
 .wrap { max-width: 1184px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
 .row { display: flex; flex-wrap: wrap; gap: 16px; }
 .stack { display: flex; flex-direction: column; gap: 16px; }
@@ -179,6 +179,20 @@ h2 { font-size: 26px; font-weight: 800; }
 .prose h1 { font-size: clamp(32px, 4vw, 48px); font-weight: 800; }
 .prose ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 17px; line-height: 1.5; }
 .prose .btn { align-self: flex-start; }
+
+/* ---------- Feedback and language ---------- */
+.lang-switch { min-height: 44px; min-width: 44px; border: 2px solid var(--line); background: #fff; border-radius: 12px; font: inherit; font-weight: 700; cursor: pointer; }
+.lang-switch:hover { border-color: var(--ink); }
+.feedback { position: fixed; right: max(16px, env(safe-area-inset-right, 0px)); bottom: max(16px, env(safe-area-inset-bottom, 0px)); z-index: 50; display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+.feedback-toggle { box-shadow: 0 6px 20px rgba(11, 15, 25, 0.25); }
+.feedback-panel { width: min(380px, calc(100vw - 32px)); box-shadow: 0 12px 40px rgba(11, 15, 25, 0.2); display: flex; flex-direction: column; gap: 12px; padding: 20px; }
+.feedback-head { display: flex; justify-content: space-between; align-items: center; }
+.feedback-head h2 { font-size: 20px; }
+.feedback-form { display: flex; flex-direction: column; gap: 8px; }
+.feedback-form label { font-size: 14px; font-weight: 600; }
+.feedback-form textarea, .feedback-form input[type=email] { font: inherit; font-size: 16px; padding: 10px 12px; border: 2px solid var(--line); border-radius: 12px; width: 100%; }
+.feedback-form textarea:focus, .feedback-form input[type=email]:focus { border-color: var(--ink); outline: none; }
+.small-muted { font-size: 13px; color: var(--muted); }
 
 /* ---------- Print: only the useful parts ---------- */
 @media print {
