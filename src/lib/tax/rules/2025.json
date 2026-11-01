@@ -95,7 +95,9 @@
     "lowIncomeThreshold": 148,
     "midIncomeLimit": 46142,
     "midRate": 0.0165,
-    "highRate": 0.0575
+    "highRate": 0.0575,
+    "upliftUnderAow": 0.4,
+    "upliftAow": 1.13
   },
   "gifts": {
     "minThreshold": 60,
@@ -149,6 +151,7 @@
     "smeExemptionRate": 0.127,
     "hoursRequired": 1225,
     "zvwRate": 0.0526,
-    "zvwMaxIncome": 75864
+    "zvwMaxIncome": 75864,
+    "starterDeduction": 2123
   }
 }

@@ -88,7 +88,9 @@ export function sideIncome(answers: Answers, rules: TaxRules) {
   const profit = n(answers.sideIncomeAmount);
   if (answers.sideType !== "business") return { taxable: profit, work: profit, zvw: 0 };
   const b = rules.business;
-  const afterDeduction = profit - (answers.sideHours === "yes" ? Math.min(b.selfEmployedDeduction, profit) : 0);
+  const entrepreneurDeduction =
+    answers.sideHours === "yes" ? b.selfEmployedDeduction + (answers.sideStarter === "yes" ? b.starterDeduction : 0) : 0;
+  const afterDeduction = profit - Math.min(entrepreneurDeduction, profit);
   const taxable = afterDeduction * (1 - b.smeExemptionRate);
   return { taxable, work: profit, zvw: b.zvwRate * Math.min(taxable, b.zvwMaxIncome) };
 }
@@ -207,7 +209,7 @@ export function calculate(answers: Answers, rules: TaxRules = rulesFor(answers))
     notes.push(`As a business owner you also pay a healthcare contribution (Zvw) of about €${round(side.zvw)}. It comes as a separate bill and is not in this result.`);
   }
   if (answers.sideIncome === "yes" && answers.sideType === "business") {
-    notes.push("Business costs, starter deduction and investment deductions are not in this estimate. Enter profit after costs.");
+    notes.push("Business costs and investment deductions are not in this estimate. Enter profit after costs.");
   }
   const foreign = answers.residency !== "non_resident" && answers.foreignIncome === "yes" ? n(answers.foreignIncomeAmount) : 0;
   const foreignRelief = answers.foreignTaxed === "yes";
@@ -284,16 +286,32 @@ export function calculate(answers: Answers, rules: TaxRules = rulesFor(answers))
   if (year === 2026 && b3.base > 0) {
     notes.push("The 2026 savings rate (1.28%) is still provisional. The final rate comes in early 2027.");
   }
-  if (answers.ruling2023 === "yes" && b3.base > 0) {
-    notes.push("You may be able to choose partial non-resident status. Then savings abroad are not taxed. We didn't include this.");
+  // Partial non-resident status (30% ruling from before 2024, until 2026): only Dutch property counts in box 3.
+  let partialNonResidentSaving: number | undefined;
+  if (answers.ruling30 === "yes" && answers.ruling2023 === "yes" && year <= 2026 && b3.tax > 0) {
+    const alt = box3({ ...answers, savings: 0, investments: 0, otherProperty: n(answers.dutchProperty) }, rules, people);
+    if (alt.tax < b3.tax) {
+      partialNonResidentSaving = round(b3.tax - alt.tax);
+      b3 = alt;
+      notes.push(`Choosing partial non-resident status saves you about €${partialNonResidentSaving} on box 3. We used it. You must choose it in your return.`);
+    }
   }
 
   // 4. Personal deductions, using the combined income of both partners
   const partnerWage = hasPartner ? n(answers.partnerWage) : 0;
   const thresholdIncome = Math.max(0, wage + side.taxable + foreign + homeIncome + partnerWage + b3.benefit);
   const alimonyDeduction = answers.alimony === "yes" ? n(answers.alimonyAmount) : 0;
+  // Low incomes may count their healthcare costs 40% higher, or 113% at pension age.
+  const atPensionAge = answers.pensionAge === "yes" || (hasPartner && answers.partnerPensionAge === "yes");
+  const upliftLimit = rules.box1.brackets[0].upTo ?? 0;
+  const uplift =
+    thresholdIncome <= upliftLimit ? (atPensionAge ? rules.healthcare.upliftAow : rules.healthcare.upliftUnderAow) : 0;
+  const healthcareCosts = n(answers.healthcareAmount) * (1 + uplift);
+  if (answers.healthcare === "yes" && uplift > 0 && n(answers.healthcareAmount) > 0) {
+    notes.push(`Your income is low enough to count your healthcare costs ${Math.round(uplift * 100)}% higher. Some costs (like travel) don't get this extra.`);
+  }
   const healthcareDeduction =
-    answers.healthcare === "yes" ? Math.max(0, n(answers.healthcareAmount) - healthcareThreshold(thresholdIncome, rules)) : 0;
+    answers.healthcare === "yes" ? Math.max(0, healthcareCosts - healthcareThreshold(thresholdIncome, rules)) : 0;
   const g = rules.gifts;
   const giftsDeduction =
     answers.gifts === "yes"
@@ -392,6 +410,7 @@ export function calculate(answers: Answers, rules: TaxRules = rulesFor(answers))
       alimonyDeduction: round(alimonyDeduction),
       box3Base: round(b3.base),
       zvwContribution: round(side.zvw),
+      partialNonResidentSaving,
       result: you.result + (partner?.result ?? 0),
     };
   }

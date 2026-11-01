@@ -25,6 +25,7 @@ export interface Answers {
   sideIncome?: "yes" | "no";
   sideType?: "business" | "other";
   sideHours?: "yes" | "no";
+  sideStarter?: "yes" | "no";
   sideIncomeAmount?: number;
   provisional?: "none" | "received" | "paid";
   provisionalAmount?: number;
@@ -58,6 +59,7 @@ export interface Answers {
   savings?: number;
   investments?: number;
   otherProperty?: number;
+  dutchProperty?: number; // part of otherProperty in the Netherlands (partial non-resident check)
 
   // Deductions
   healthcare?: "yes" | "no";
@@ -103,6 +105,9 @@ export interface TaxRules {
     midIncomeLimit: number;
     midRate: number;
     highRate: number;
+    /** Extra on top of costs when income is within the first bracket: under and at pension age. */
+    upliftUnderAow: number;
+    upliftAow: number;
   };
   gifts: { minThreshold: number; thresholdRate: number; maxRate: number };
   aow: {
@@ -116,6 +121,7 @@ export interface TaxRules {
     selfEmployedDeduction: number;
     smeExemptionRate: number;
     hoursRequired: number;
+    starterDeduction: number;
     zvwRate: number;
     zvwMaxIncome: number;
   };
@@ -163,6 +169,8 @@ export interface Estimate {
   giftsDeduction: number;
   alimonyDeduction: number;
   box3Base: number;
+  /** Partial non-resident status: tax saved by choosing it (only set when it helps). */
+  partialNonResidentSaving?: number;
   /** Income-related healthcare contribution for business owners (a separate bill). */
   zvwContribution: number;
   /** Household total: positive = refund, negative = pay */

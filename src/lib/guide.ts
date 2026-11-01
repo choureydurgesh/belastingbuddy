@@ -58,6 +58,7 @@ export function buildGuide(a: Answers, e: Estimate): GuideStep[] {
         ...(business
           ? [
               { label: a.sideHours === "yes" ? "Tick that you met the hours rule (urencriterium)." : "Don't tick the hours rule (urencriterium)." },
+              ...(a.sideStarter === "yes" ? [{ label: "Tick the starter deduction (startersaftrek)." }] : []),
               { label: "The SME profit exemption (mkb-winstvrijstelling) is applied for you." },
             ]
           : []),
@@ -122,9 +123,11 @@ export function buildGuide(a: Answers, e: Estimate): GuideStep[] {
         ...((a.studentLoanAmount ?? 0) > 0 ? [{ label: "Student loan on 1 January", value: formatEuro(a.studentLoanAmount ?? 0) }] : []),
         ...((a.otherDebts ?? 0) > 0 ? [{ label: "Other debts on 1 January", value: formatEuro(a.otherDebts ?? 0) }] : []),
         { label: "Dutch bank accounts are often pre-filled. Add accounts abroad yourself." },
-        ...(a.ruling2023 === "yes"
-          ? [{ label: "You may be able to choose partial non-resident status. Ask a tax advisor before you file." }]
-          : []),
+        ...(e.partialNonResidentSaving
+          ? [{ label: "Choose partial non-resident status (partiële buitenlandse belastingplicht). Then only fill in Dutch property here." }]
+          : a.ruling2023 === "yes"
+            ? [{ label: "Partial non-resident status doesn't save you money this year, so don't choose it." }]
+            : []),
       ],
     });
   }

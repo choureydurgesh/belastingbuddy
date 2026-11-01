@@ -209,6 +209,15 @@ export const QUESTIONS: Question[] = [
     showIf: (a) => a.sideIncome === "yes" && a.sideType === "business",
   },
   {
+    id: "sideStarter",
+    section: "income",
+    kind: "choice",
+    text: "Did you start your business in the last 5 years?",
+    help: "Starters get an extra deduction (startersaftrek), up to 3 times in the first 5 years. Answer no if you already used it 3 times.",
+    options: yesNo,
+    showIf: (a) => a.sideIncome === "yes" && a.sideType === "business" && a.sideHours === "yes",
+  },
+  {
     id: "sideIncomeAmount",
     section: "income",
     kind: "money",
@@ -468,6 +477,14 @@ export const QUESTIONS: Question[] = [
     text: "Did you own any other property on 1 January {year}? Enter its value.",
     help: "For example a second home or a home you rent out, here or abroad. Enter 0 if none.",
     showIf: livedHereJan1,
+  },
+  {
+    id: "dutchProperty",
+    section: "savings",
+    kind: "money",
+    text: "How much of that property is in the Netherlands?",
+    help: "With the 30% ruling from before 2024 you may choose partial non-resident status. Then only Dutch property is taxed here. We work out if that saves you money. Enter 0 if it's all abroad.",
+    showIf: (a) => livedHereJan1(a) && a.ruling2023 === "yes" && yearOf(a) <= 2026 && (a.otherProperty ?? 0) > 0,
   },
 
   // ---------- F6 Deductions ----------

@@ -40,4 +40,6 @@ Other commands:
 
 - Answers are saved only in the user's browser. Nothing goes to a server.
 - The estimate covers employees, business owners, people 67+, fiscal partners (best split), income from abroad, and qualifying non-residents. M form, C form and abroad estimates are marked "rough".
-- Not included yet: business costs and starter deduction, partial non-resident status (30% ruling), non-qualifying non-residents, extra healthcare deductions for 67+.
+- Also covered: starter deduction, partial non-resident status (picked only when it saves money), extra healthcare deduction for low incomes and 67+.
+- Not included yet: business costs (enter profit after costs), investment deductions, non-qualifying non-residents.
+- Server: `functions/api/` (Cloudflare Pages Functions) with a D1 database in the EU (`schema.sql`). Only feedback and reminder emails are stored.

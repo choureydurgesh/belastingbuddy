@@ -200,3 +200,29 @@ test("home: renting adds a note, no home income", () => {
   assert.equal(e.you.homeIncome, 0);
   assert.ok(e.notes.some((n) => n.includes("huurtoeslag")));
 });
+
+// ---------- F20: Phase 1 gaps ----------
+test("starter deduction adds €2,123 on top of the self-employed deduction", () => {
+  const s = sideIncome({ sideIncome: "yes", sideType: "business", sideHours: "yes", sideStarter: "yes", sideIncomeAmount: 30000 }, RULES);
+  close(s.taxable, (30000 - 2470 - 2123) * 0.873);
+});
+
+test("healthcare costs count 40% higher on a low income, 113% at 67+", () => {
+  const low = { ...employee, fiscalWage: 25000, taxWithheld: 0, healthcare: "yes" as const, healthcareAmount: 2000 };
+  const plain = calculate({ ...low, fiscalWage: 60000 });
+  assert.equal(plain.healthcareDeduction, Math.max(0, Math.round(2000 - (0.0165 * 46142 + 0.0575 * (60000 - 46142)))));
+  const e = calculate(low);
+  close(e.healthcareDeduction, 2000 * 1.4 - 0.0165 * 25000, 1);
+  const old = calculate({ ...low, pensionAge: "yes" });
+  close(old.healthcareDeduction, 2000 * 2.13 - 0.0165 * 25000, 1);
+});
+
+test("partial non-resident status is used when it saves money", () => {
+  const a: Answers = { ...employee, ruling30: "yes", ruling2023: "yes", savings: 200000, investments: 0, otherProperty: 50000, dutchProperty: 0 };
+  const e = calculate(a);
+  assert.ok((e.partialNonResidentSaving ?? 0) > 0);
+  assert.equal(e.you.box3Tax, 0);
+  const noRuling = calculate({ ...a, ruling2023: "no" });
+  assert.equal(noRuling.partialNonResidentSaving, undefined);
+  assert.ok(noRuling.you.box3Tax > 0);
+});
