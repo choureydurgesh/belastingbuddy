@@ -222,16 +222,55 @@ export function calculate(answers: Answers, rules: TaxRules = rulesFor(answers))
 
   // 2. Own home (shared between partners)
   let forfait = 0;
-  let interest = 0;
+  let interest = 0; // deductible interest plus deductible home costs
+  let homeCosts = 0;
   let homeIncome = 0;
   if (answers.ownHome === "yes") {
     const share = (answers.homeShare ?? 100) / 100;
     const months = Math.min(12, Math.max(1, answers.homeMonths ?? 12));
+    const moved = answers.homeChange === "both";
+    const bought = answers.homeChange === "bought" || moved;
+    const sold = answers.homeChange === "sold" || moved;
+
+    // Fixed "income" for each home you owned, for the months you owned it.
     forfait = homeForfait(n(answers.wozValue), rules) * share * (months / 12);
-    interest = n(answers.mortgageInterest) * share;
+    if (moved) {
+      const oldMonths = Math.min(12, Math.max(1, answers.oldHomeMonths ?? 0));
+      forfait += homeForfait(n(answers.oldWozValue), rules) * share * (oldMonths / 12);
+      rough = true;
+      notes.push("You owned two homes for part of the year. A home that stands empty and is for sale still counts as your own home for up to 3 years, so its interest is usually deductible.");
+    }
+
+    // Interest is only deductible if the loan is paid off within 30 years (loans from 2013 on).
+    let deductibleInterest = n(answers.mortgageInterest) * share;
+    if (answers.mortgageType === "interestOnlyNew") {
+      deductibleInterest = 0;
+      notes.push("Interest on an interest-only mortgage taken out in 2013 or later is not deductible. That loan counts as a debt in box 3 instead.");
+    } else if (answers.mortgageType === "unsure") {
+      rough = true;
+      notes.push("We assumed your mortgage interest is deductible. Check your mortgage type with your bank.");
+    }
+
+    // One-off mortgage costs (year you bought) and ground lease are deducted like interest.
+    homeCosts = ((bought ? n(answers.purchaseCosts) : 0) + (answers.groundLease === "yes" ? n(answers.groundLeaseAmount) : 0)) * share;
+    interest = deductibleInterest + homeCosts;
     homeIncome = forfait - interest;
     // Little or no mortgage: part of the forfait is cancelled out ("Wet Hillen").
     if (homeIncome > 0) homeIncome *= 1 - rules.home.lowDebtDeductionRate;
+
+    if (sold && answers.saleResult === "profit") {
+      rough = true;
+      notes.push(
+        bought
+          ? "You sold with a profit and bought again. The profit should go into your new home (bijleenregeling). If it didn't, part of your new mortgage interest is not deductible. We didn't include this."
+          : "You sold with a profit. If you buy a new home within 3 years, that profit must go into it, or part of the new mortgage interest won't be deductible (bijleenregeling).",
+      );
+    }
+    if (sold && answers.saleResult === "loss") {
+      notes.push("Debt left after selling (restschuld) counts as a box 3 debt. Its interest is not deductible for homes sold after 2017.");
+    }
+  } else if (answers.ownHome === "no") {
+    notes.push("Rent isn't deductible in the Netherlands. You may be able to get rent benefit (huurtoeslag); you ask for that separately.");
   }
 
   // 3. Box 3 (only if you lived here on 1 January)
@@ -346,7 +385,8 @@ export function calculate(answers: Answers, rules: TaxRules = rulesFor(answers))
       partner,
       split,
       forfait: round(forfait),
-      interest: round(interest),
+      interest: round(interest - homeCosts),
+      homeCosts: round(homeCosts),
       healthcareDeduction: round(healthcareDeduction),
       giftsDeduction: round(giftsDeduction),
       alimonyDeduction: round(alimonyDeduction),

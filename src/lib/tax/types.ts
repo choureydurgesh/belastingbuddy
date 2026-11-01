@@ -38,10 +38,18 @@ export interface Answers {
 
   // Home and loans
   ownHome?: "yes" | "no";
+  homeChange?: "none" | "bought" | "sold" | "both";
   homeShare?: number; // 100 or 50
   homeMonths?: number; // 1–12
   wozValue?: number;
+  oldWozValue?: number;
+  oldHomeMonths?: number; // 1–12
   mortgageInterest?: number;
+  mortgageType?: "repaying" | "interestOnlyOld" | "interestOnlyNew" | "unsure";
+  purchaseCosts?: number;
+  groundLease?: "yes" | "no";
+  groundLeaseAmount?: number;
+  saleResult?: "profit" | "loss" | "even";
   studentLoan?: "yes" | "no";
   studentLoanAmount?: number;
   otherDebts?: number;
@@ -149,6 +157,8 @@ export interface Estimate {
   /** Home and deduction totals before splitting (for the breakdown). */
   forfait: number;
   interest: number;
+  /** One-off mortgage costs and ground lease, deducted with the interest. */
+  homeCosts: number;
   healthcareDeduction: number;
   giftsDeduction: number;
   alimonyDeduction: number;

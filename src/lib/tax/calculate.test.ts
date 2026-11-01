@@ -169,3 +169,34 @@ test("2026: the chosen year picks the rules", () => {
   assert.notEqual(e25.you.totalTax, e26.you.totalTax);
   assert.ok(e26.notes.length >= 0);
 });
+
+// ---------- Home and loans ----------
+const owner: Answers = { ...employee, ownHome: "yes", homeChange: "none", homeShare: 100, homeMonths: 12, wozValue: 400000, mortgageInterest: 10000, mortgageType: "repaying", groundLease: "no" };
+
+test("home: one-off costs and ground lease lower the tax", () => {
+  const base = calculate({ ...owner, homeChange: "bought", purchaseCosts: 0 });
+  const withCosts = calculate({ ...owner, homeChange: "bought", purchaseCosts: 3000, groundLease: "yes", groundLeaseAmount: 1000 });
+  assert.equal(withCosts.homeCosts, 4000);
+  // 37.48% tax saved, plus a higher general tax credit (6.337% phase-out)
+  close(withCosts.result - base.result, 4000 * (0.3748 + 0.06337), 2);
+});
+
+test("home: interest-only loan from 2013 on is not deductible", () => {
+  const ok = calculate(owner);
+  const notOk = calculate({ ...owner, mortgageType: "interestOnlyNew" });
+  assert.ok(notOk.result < ok.result);
+  assert.equal(notOk.interest, 0);
+});
+
+test("home: moving adds the forfait of the old home", () => {
+  const one = calculate({ ...owner, homeChange: "bought", homeMonths: 6, purchaseCosts: 0 });
+  const two = calculate({ ...owner, homeChange: "both", homeMonths: 6, oldWozValue: 300000, oldHomeMonths: 6, purchaseCosts: 0, saleResult: "even" });
+  close(two.forfait - one.forfait, 300000 * 0.0035 / 2, 1);
+  assert.equal(two.rough, true);
+});
+
+test("home: renting adds a note, no home income", () => {
+  const e = calculate({ ...employee, ownHome: "no" });
+  assert.equal(e.you.homeIncome, 0);
+  assert.ok(e.notes.some((n) => n.includes("huurtoeslag")));
+});

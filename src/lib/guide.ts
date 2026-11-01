@@ -80,13 +80,33 @@ export function buildGuide(a: Answers, e: Estimate): GuideStep[] {
     });
   }
   if (a.ownHome === "yes") {
+    const moved = a.homeChange === "both";
+    const bought = a.homeChange === "bought" || moved;
     steps.push({
       title: "Fill in your home",
       dutch: "Eigen woning",
       lines: [
         { label: "WOZ value (full home)", value: formatEuro(a.wozValue ?? 0) },
+        ...(moved
+          ? [
+              { label: "WOZ value of the home you sold", value: formatEuro(a.oldWozValue ?? 0) },
+              { label: "Add both homes, each with its own dates." },
+            ]
+          : []),
         { label: "Mortgage interest paid (full amount)", value: formatEuro(a.mortgageInterest ?? 0) },
+        ...(a.mortgageType === "interestOnlyNew"
+          ? [{ label: "Don't deduct this interest. Report the loan under box 3 debts." }]
+          : []),
+        ...(bought && (a.purchaseCosts ?? 0) > 0
+          ? [{ label: "One-off mortgage costs (financieringskosten)", value: formatEuro(a.purchaseCosts ?? 0) }]
+          : []),
+        ...(a.groundLease === "yes"
+          ? [{ label: "Ground lease paid (erfpachtcanon)", value: formatEuro(a.groundLeaseAmount ?? 0) }]
+          : []),
         { label: "Your share of the home", value: `${a.homeShare ?? 100}%` },
+        ...(bought
+          ? [{ label: "Mijn Belastingdienst asks if you used profit from an earlier home. Answer with your notary statements at hand." }]
+          : []),
         { label: "Check the bank details are already filled in. Interest is often pre-filled." },
       ],
     });

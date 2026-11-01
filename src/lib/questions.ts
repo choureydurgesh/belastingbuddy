@@ -38,6 +38,7 @@ const yesNoUnsure: Option[] = [...yesNo, { value: "unsure", label: "Not sure" }]
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
+const isOwner = (a: Answers) => a.ownHome === "yes";
 const livedHereJan1 = (a: Answers) => a.residency === "resident" || a.residency === "moved_out";
 
 export const QUESTIONS: Question[] = [
@@ -282,12 +283,32 @@ export const QUESTIONS: Question[] = [
   },
 
   // ---------- F4 Home and loans ----------
+  // Order follows the "Eigen woning" part of the Belastingdienst return:
+  // own or rent → bought/sold → share and months → WOZ → mortgage → one-off costs → ground lease.
   {
     id: "ownHome",
     section: "home",
     kind: "choice",
-    text: "Did you own the home you lived in?",
-    options: yesNo,
+    text: "Did you rent or own the home you lived in during {year}?",
+    help: "If you owned it for part of the year, choose 'I owned it'.",
+    options: [
+      { value: "no", label: "I rented, or lived with others" },
+      { value: "yes", label: "I owned it" },
+    ],
+  },
+  {
+    id: "homeChange",
+    section: "home",
+    kind: "choice",
+    text: "Did you buy or sell a home in {year}?",
+    help: "Use the date you signed at the notary, not the date you agreed the price.",
+    options: [
+      { value: "none", label: "No" },
+      { value: "bought", label: "I bought one" },
+      { value: "sold", label: "I sold one" },
+      { value: "both", label: "I sold one and bought another" },
+    ],
+    showIf: isOwner,
   },
   {
     id: "homeShare",
@@ -299,32 +320,103 @@ export const QUESTIONS: Question[] = [
       { value: 100, label: "All of it" },
       { value: 50, label: "Half" },
     ],
-    showIf: (a) => a.ownHome === "yes",
+    showIf: isOwner,
   },
   {
     id: "homeMonths",
     section: "home",
     kind: "number",
-    text: "For how many months of {year} did you own and live in it?",
+    text: "For how many months of {year} did you own and live in your (new) home?",
+    help: "Count from the month you got the keys. If you sold your only home, count the months until the sale.",
     min: 1,
     max: 12,
-    showIf: (a) => a.ownHome === "yes",
+    showIf: isOwner,
   },
   {
     id: "wozValue",
     section: "home",
     kind: "money",
-    text: "What is the WOZ value of the home?",
-    help: "It's on the letter from your municipality (WOZ-beschikking) you got in early {year}. Use the full value, not your share.",
-    showIf: (a) => a.ownHome === "yes",
+    text: "What is the WOZ value of that home?",
+    help: "It's on the WOZ letter (WOZ-beschikking) from your municipality, dated early {year}. Just bought it? The seller's letter or the municipality's website (wozwaardeloket.nl) shows it. Use the full value, not your share.",
+    showIf: isOwner,
+  },
+  {
+    id: "oldWozValue",
+    section: "home",
+    kind: "money",
+    text: "What is the WOZ value of the home you sold?",
+    help: "From the WOZ letter for that home, dated early {year}.",
+    showIf: (a) => isOwner(a) && a.homeChange === "both",
+  },
+  {
+    id: "oldHomeMonths",
+    section: "home",
+    kind: "number",
+    text: "For how many months of {year} did you still own the home you sold?",
+    help: "Count until the month you signed the sale at the notary. If it stood empty and for sale, those months count too.",
+    min: 1,
+    max: 12,
+    showIf: (a) => isOwner(a) && a.homeChange === "both",
   },
   {
     id: "mortgageInterest",
     section: "home",
     kind: "money",
     text: "How much mortgage interest was paid in {year}?",
-    help: "It's on the yearly statement from your bank (jaaroverzicht). Use the full amount, not your share. Enter 0 if you have no mortgage.",
-    showIf: (a) => a.ownHome === "yes",
+    help: "It's on the yearly statement from your bank (jaaroverzicht). Use the full amount, not your share. If you moved, add up the interest for both homes. Enter 0 if you have no mortgage.",
+    showIf: isOwner,
+  },
+  {
+    id: "mortgageType",
+    section: "home",
+    kind: "choice",
+    text: "How is your mortgage paid off?",
+    help: "Interest is only deductible if you pay off the loan within 30 years (annuity or linear). Interest-only loans from before 2013 are still allowed. Your bank's statement or offer shows the type.",
+    options: [
+      { value: "repaying", label: "Annuity or linear (I pay it off)" },
+      { value: "interestOnlyOld", label: "Interest-only, from before 2013" },
+      { value: "interestOnlyNew", label: "Interest-only, from 2013 or later" },
+      { value: "unsure", label: "I don't know" },
+    ],
+    showIf: (a) => isOwner(a) && (a.mortgageInterest ?? 0) > 0,
+  },
+  {
+    id: "purchaseCosts",
+    section: "home",
+    kind: "money",
+    text: "How much did you pay in one-off costs to get your mortgage?",
+    help: "These count: mortgage advisor fee, notary costs for the mortgage deed, valuation report (taxatie) and the NHG fee. These don't: transfer tax, notary costs for the purchase deed, estate agent. Your notary's statement (nota van afrekening) lists them. Enter 0 if none.",
+    showIf: (a) => isOwner(a) && (a.homeChange === "bought" || a.homeChange === "both"),
+  },
+  {
+    id: "groundLease",
+    section: "home",
+    kind: "choice",
+    text: "Do you pay ground lease (erfpacht) for the land?",
+    help: "Common in Amsterdam and some other cities. You pay the city a yearly fee (canon) for the land under your home.",
+    options: yesNo,
+    showIf: isOwner,
+  },
+  {
+    id: "groundLeaseAmount",
+    section: "home",
+    kind: "money",
+    text: "How much ground lease did you pay in {year}?",
+    help: "Only the yearly fee (canon). A one-off buyout doesn't count.",
+    showIf: (a) => isOwner(a) && a.groundLease === "yes",
+  },
+  {
+    id: "saleResult",
+    section: "home",
+    kind: "choice",
+    text: "When you sold, was the price more than the mortgage left on that home?",
+    help: "This changes how much of a new mortgage is deductible, or what happens to any debt left over.",
+    options: [
+      { value: "profit", label: "Yes, I made a profit" },
+      { value: "loss", label: "No, some debt was left" },
+      { value: "even", label: "About the same" },
+    ],
+    showIf: (a) => isOwner(a) && (a.homeChange === "sold" || a.homeChange === "both"),
   },
   {
     id: "studentLoan",

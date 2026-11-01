@@ -172,7 +172,7 @@ function Breakdown({ title, p }: { title?: string; p: PersonResult }) {
         {p.wage > 0 && <Line label="Salary" value={p.wage} />}
         {p.sideIncome !== 0 && <Line label="Side income (taxable)" value={p.sideIncome} />}
         {p.foreignIncome > 0 && <Line label="Income from abroad" value={p.foreignIncome} />}
-        {p.homeIncome !== 0 && <Line label="Home (forfait minus interest)" value={p.homeIncome} />}
+        {p.homeIncome !== 0 && <Line label="Home (forfait minus interest and costs)" value={p.homeIncome} />}
         {p.deductions > 0 && <Line label="Deductions" value={-p.deductions} />}
         <Line label="Taxable income (box 1)" value={p.box1Taxable} strong />
         <Line label="Tax on box 1" value={p.box1Tax} />

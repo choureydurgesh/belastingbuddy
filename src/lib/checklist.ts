@@ -49,8 +49,23 @@ export function buildChecklist(a: Answers): ChecklistItem[] {
     items.push({ id: "provisional", title: "Your provisional assessment letter (voorlopige aanslag)", where: "Mijn Belastingdienst or the letter by post." });
   }
   if (a.ownHome === "yes") {
-    items.push({ id: "woz", title: "WOZ letter (WOZ-beschikking)", where: "From your municipality, often in MijnOverheid." });
-    items.push({ id: "mortgage", title: "Mortgage yearly statement (jaaroverzicht)", where: "From your bank or mortgage provider." });
+    items.push({ id: "woz", title: "WOZ letter (WOZ-beschikking)", where: "From your municipality, often in MijnOverheid, or wozwaardeloket.nl." });
+    if ((a.mortgageInterest ?? 0) > 0) {
+      items.push({ id: "mortgage", title: "Mortgage yearly statement (jaaroverzicht)", where: "From your bank or mortgage provider. One for each loan." });
+    }
+    if (a.homeChange === "bought" || a.homeChange === "both") {
+      items.push({ id: "notary-buy", title: "Notary statement for your purchase (nota van afrekening)", where: "From your notary. It lists the one-off costs." });
+      items.push({ id: "advisor", title: "Invoice from your mortgage advisor", where: "From your advisor or bank." });
+    }
+    if (a.homeChange === "sold" || a.homeChange === "both") {
+      items.push({ id: "notary-sell", title: "Notary statement for your sale", where: "Shows the sale price and the mortgage paid off." });
+    }
+    if (a.homeChange === "both") {
+      items.push({ id: "woz-old", title: "WOZ letter for the home you sold", where: "From the municipality where that home is." });
+    }
+    if (a.groundLease === "yes") {
+      items.push({ id: "erfpacht", title: "Ground lease (erfpacht) statement", where: "From your city. Shows the yearly fee (canon) you paid." });
+    }
   }
   if (a.studentLoan === "yes") {
     items.push({ id: "duo", title: `Student loan balance on 1 January ${y}`, where: "Mijn DUO, or your lender's yearly overview." });
