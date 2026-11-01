@@ -1,10 +1,16 @@
 // Dutch texts. Key = the English text used in the code, value = Dutch.
-// {placeholders} in a key match any value, e.g. a year or an amount.
+// {placeholders} in a key match any value (a year, an amount), and are copied into the Dutch text.
+// Plain Dutch, informal "je", like the English.
 export const NL: Record<string, string> = {
-  // Feedback (F17)
+  // ---------- Navigation and general ----------
+  "Guides": "Gidsen",
+  "Privacy": "Privacy",
+  "Start free": "Gratis starten",
   "Feedback": "Feedback",
-  "Send feedback": "Feedback sturen",
   "Close": "Sluiten",
+
+  // ---------- Feedback (F17) ----------
+  "Send feedback": "Feedback sturen",
   "Thank you! We read every message.": "Dank je! We lezen elk bericht.",
   "What is it about?": "Waar gaat het over?",
   "Something's wrong": "Er klopt iets niet",
@@ -17,4 +23,496 @@ export const NL: Record<string, string> = {
   "Sending didn't work. Please try again in a minute.": "Versturen lukte niet. Probeer het over een minuut opnieuw.",
   "Sending…": "Versturen…",
   "Send": "Versturen",
+
+  // ---------- Homepage ----------
+  "Tax years {years} · for expats and residents": "Belastingjaren {years} · voor expats en inwoners",
+  " and ": " en ",
+  "Dutch taxes,": "Belastingaangifte,",
+  "without the Dutch.": "zonder gedoe.",
+  "We ask simple questions in plain English. You get a checklist and exactly what to type into Mijn Belastingdienst.":
+    "We stellen simpele vragen in gewone taal. Je krijgt een checklist en precies wat je invult in Mijn Belastingdienst.",
+  "Start my return": "Start mijn aangifte",
+  "Continue my return": "Verder met mijn aangifte",
+  "What it feels like": "Zo werkt het",
+  "Did you have the 30% ruling?": "Had je de 30%-regeling?",
+  "Refund estimate": "Schatting teruggave",
+  "Live": "Live",
+  "Updates every time you answer a question.": "Past zich aan bij elke vraag die je beantwoordt.",
+  "Moved this year?": "Dit jaar verhuisd?",
+  "We spot it and guide you through the M form.": "Wij zien het en helpen je met het M-formulier.",
+  "Home and mortgage": "Huis en hypotheek",
+  "WOZ value, mortgage interest and loans in one place.": "WOZ-waarde, hypotheekrente en leningen op één plek.",
+  "Savings (box 3)": "Sparen (box 3)",
+  "Bank, shares and crypto on 1 January, explained.": "Bank, aandelen en crypto op 1 januari, uitgelegd.",
+  "Your filing guide": "Je invulhulp",
+  "Every number, and the section it goes in.": "Elk bedrag, en waar het hoort.",
+  "All guides →": "Alle gidsen →",
+  "BelastingBuddy is a guide, not a tax advisor. You file your own return on Mijn Belastingdienst. Your answers stay in this browser.":
+    "BelastingBuddy is een hulp, geen belastingadviseur. Je doet zelf aangifte via Mijn Belastingdienst. Je antwoorden blijven in deze browser.",
+
+  // ---------- Question chat ----------
+  "Question {n} of {total}": "Vraag {n} van {total}",
+  "Questions": "Vragen",
+  "← Back": "← Terug",
+  "Hi! I'll ask you a few simple questions about your tax return. Your answers stay in this browser. Let's start.":
+    "Hoi! Ik stel je een paar simpele vragen over je aangifte. Je antwoorden blijven in deze browser. We beginnen.",
+  "Change": "Wijzig",
+  "Change answer: {q}": "Wijzig antwoord: {q}",
+  "Choose an answer": "Kies een antwoord",
+  "Next →": "Volgende →",
+  "Please enter an amount, like 45000.": "Vul een bedrag in, bijvoorbeeld 45000.",
+  "Please enter a number.": "Vul een getal in.",
+  "Please enter at least {n}.": "Vul minstens {n} in.",
+  "Please enter at most {n}.": "Vul maximaal {n} in.",
+  "Your route": "Je route",
+  "(done)": "(klaar)",
+  "(now)": "(nu)",
+  "Estimated refund": "Geschatte teruggave",
+  "Estimated to pay": "Geschat bij te betalen",
+  "We can't estimate your situation yet.": "We kunnen jouw situatie nog niet schatten.",
+  "Rough estimate. It updates as you answer.": "Ruwe schatting. Past zich aan terwijl je antwoordt.",
+  "Updates as you answer.": "Past zich aan terwijl je antwoordt.",
+  "Shows up once you've told us about your income.": "Verschijnt zodra je je inkomen hebt ingevuld.",
+  "Delete my answers": "Wis mijn antwoorden",
+  "Delete all answers from this browser?": "Alle antwoorden uit deze browser wissen?",
+  "Yes, delete": "Ja, wissen",
+  "Cancel": "Annuleren",
+
+  // ---------- Sections ----------
+  "Start check": "Startcheck",
+  "Income": "Inkomen",
+  "Your partner": "Je partner",
+  "Home and loans": "Woning en leningen",
+  "Savings": "Sparen",
+  "Deductions": "Aftrekposten",
+
+  // ---------- Questions: start ----------
+  "Which year are you filing for?": "Voor welk jaar doe je aangifte?",
+  "You file in spring for the year before. For 2026, filing opens on 1 March 2027.":
+    "Je doet in het voorjaar aangifte over het jaar ervoor. Voor 2026 kan dat vanaf 1 maart 2027.",
+  "Where did you live in {year}?": "Waar woonde je in {year}?",
+  "This decides which tax form you need: P form (lived here all year), M form (moved in or out) or C form (lived abroad).":
+    "Dit bepaalt welk formulier je nodig hebt: P-formulier (hele jaar hier), M-formulier (verhuisd naar of uit Nederland) of C-formulier (in het buitenland gewoond).",
+  "In the Netherlands, all year": "In Nederland, het hele jaar",
+  "I moved to the Netherlands in {year}": "Ik ben in {year} naar Nederland verhuisd",
+  "I moved away in {year}": "Ik ben in {year} vertrokken",
+  "Abroad, but I earned money here": "In het buitenland, maar ik verdiende hier geld",
+  "In which month did you move?": "In welke maand ben je verhuisd?",
+  "Use the month you registered (or deregistered) at your municipality.": "Gebruik de maand waarin je je bij de gemeente hebt in- of uitgeschreven.",
+  "January": "januari",
+  "February": "februari",
+  "March": "maart",
+  "April": "april",
+  "May": "mei",
+  "June": "juni",
+  "July": "juli",
+  "August": "augustus",
+  "September": "september",
+  "October": "oktober",
+  "November": "november",
+  "December": "december",
+  "Did you live in the EU, EEA, Switzerland or the Caribbean Netherlands, and was at least 90% of your income taxed in the Netherlands?":
+    "Woonde je in de EU, de EER, Zwitserland of Caribisch Nederland, en werd minstens 90% van je inkomen in Nederland belast?",
+  "If yes, you are a 'qualifying non-resident'. You then get the same tax credits and deductions as residents.":
+    "Zo ja, dan ben je 'kwalificerende buitenlandse belastingplichtige'. Je krijgt dan dezelfde heffingskortingen en aftrekposten als inwoners.",
+  "Yes": "Ja",
+  "No": "Nee",
+  "Not sure": "Weet ik niet",
+  "Did you have a fiscal partner in {year}?": "Had je in {year} een fiscale partner?",
+  "Yes if you were married or registered partners. Living together can also count, for example if you bought a home or have a child together.":
+    "Ja als je getrouwd was of een geregistreerd partnerschap had. Samenwonen kan ook tellen, bijvoorbeeld als je samen een huis hebt of een kind.",
+  "Were you 67 or older in {year}?": "Was je in {year} 67 jaar of ouder?",
+  "67 is the Dutch state pension (AOW) age. Lower tax rates apply after it.": "67 is de AOW-leeftijd. Daarna gelden lagere belastingtarieven.",
+  "Yes, all of {year}": "Ja, heel {year}",
+  "I turned 67 during {year}": "Ik ben in {year} 67 geworden",
+  "In which month did you turn 67?": "In welke maand werd je 67?",
+
+  // ---------- Questions: income ----------
+  "Did you get a salary or benefit from a Dutch employer or agency in {year}?": "Kreeg je in {year} loon of een uitkering van een Nederlandse werkgever of instantie?",
+  "This includes a job, UWV benefits or a pension. You get a yearly statement (jaaropgaaf) for each one.":
+    "Dus een baan, een UWV-uitkering of pensioen. Voor elk krijg je een jaaropgaaf.",
+  "What is your total fiscal wage for {year}?": "Wat is je totale fiscaal loon over {year}?",
+  "Find 'Fiscaal loon' on each jaaropgaaf and add them up. With the 30% ruling, this number already leaves out the tax-free part.":
+    "Zoek 'Fiscaal loon' op elke jaaropgaaf en tel ze op. Met de 30%-regeling is het onbelaste deel er al af.",
+  "How much tax was taken from your pay in {year}?": "Hoeveel loonheffing is er in {year} ingehouden?",
+  "Find 'Ingehouden loonheffing' on each jaaropgaaf and add them up.": "Zoek 'Ingehouden loonheffing' op elke jaaropgaaf en tel ze op.",
+  "Did you have the 30% ruling in {year}?": "Had je in {year} de 30%-regeling?",
+  "A tax break for some expats: up to 30% of salary is paid tax-free. Your employer arranges it, and it is shown on your payslip.":
+    "Een belastingvoordeel voor sommige expats: tot 30% van het loon wordt onbelast betaald. Je werkgever regelt het; je ziet het op je loonstrook.",
+  "Did you already have the 30% ruling in December 2023?": "Had je de 30%-regeling al in december 2023?",
+  "If so, you may still be able to choose 'partial non-resident' status until the end of 2026. That changes how your savings are taxed.":
+    "Dan kun je misschien nog tot eind 2026 kiezen voor 'partiële buitenlandse belastingplicht'. Dat verandert hoe je spaargeld wordt belast.",
+  "Did you earn money outside the Netherlands in {year}?": "Verdiende je in {year} geld buiten Nederland?",
+  "For example salary from a job abroad. If you moved in {year}, only count the months you lived here. Property abroad comes later, under savings.":
+    "Bijvoorbeeld loon uit een baan in het buitenland. Ben je in {year} verhuisd, tel dan alleen de maanden dat je hier woonde. Bezit in het buitenland komt later, bij sparen.",
+  "How much, in euros, before tax?": "Hoeveel, in euro's, vóór belasting?",
+  "Convert from your local currency with the average {year} rate. A close estimate is fine.": "Reken om met de gemiddelde koers van {year}. Een goede schatting is prima.",
+  "Was tax paid on it in that country?": "Is er in dat land belasting over betaald?",
+  "If yes, you can usually get relief so you don't pay tax twice. Keep proof of the tax paid.": "Zo ja, dan krijg je meestal vermindering zodat je niet dubbel betaalt. Bewaar bewijs van de betaalde belasting.",
+  "Did you have freelance work or other side income in the Netherlands?": "Had je freelance werk of ander bijverdienste in Nederland?",
+  "For example as a self-employed person (zzp), or occasional paid work.": "Bijvoorbeeld als zzp'er, of af en toe betaald werk.",
+  "What kind of side income was it?": "Wat voor bijverdienste was het?",
+  "A business is registered at the KVK and has several clients. Otherwise it's 'other work', like a one-off job.":
+    "Een onderneming staat ingeschreven bij de KVK en heeft meerdere klanten. Anders is het 'overig werk', zoals een losse klus.",
+  "My own business (zzp, KVK)": "Mijn eigen bedrijf (zzp, KVK)",
+  "Other paid work": "Ander betaald werk",
+  "Did you work at least 1,225 hours on your business in {year}?": "Werkte je in {year} minstens 1.225 uur aan je bedrijf?",
+  "That's about 24 hours a week. If yes, you get an extra deduction (zelfstandigenaftrek).": "Dat is ongeveer 24 uur per week. Zo ja, dan krijg je zelfstandigenaftrek.",
+  "Did you start your business in the last 5 years?": "Ben je de afgelopen 5 jaar met je bedrijf begonnen?",
+  "Starters get an extra deduction (startersaftrek), up to 3 times in the first 5 years. Answer no if you already used it 3 times.":
+    "Starters krijgen startersaftrek, maximaal 3 keer in de eerste 5 jaar. Antwoord nee als je die al 3 keer hebt gebruikt.",
+  "What was your profit? That's income minus costs.": "Wat was je winst? Dat is omzet min kosten.",
+  "Use your bookkeeping. Enter 0 if you made a loss.": "Kijk in je boekhouding. Vul 0 in bij verlies.",
+  "Did you get a provisional assessment (voorlopige aanslag) for {year}?": "Kreeg je een voorlopige aanslag over {year}?",
+  "Many homeowners get one. It means you got money back every month, or paid every month, during {year}.":
+    "Veel huiseigenaren hebben er een. Je kreeg dan in {year} elke maand geld terug, of je betaalde elke maand.",
+  "Yes, I got money back": "Ja, ik kreeg geld terug",
+  "Yes, I paid money": "Ja, ik betaalde",
+  "What was the total amount for {year}?": "Wat was het totale bedrag over {year}?",
+  "It is on the letter from the Belastingdienst, or in Mijn Belastingdienst.": "Het staat op de brief van de Belastingdienst, of in Mijn Belastingdienst.",
+
+  // ---------- Questions: partner ----------
+  "Was your partner 67 or older for all of {year}?": "Was je partner heel {year} 67 of ouder?",
+  "What is your partner's total fiscal wage for {year}?": "Wat is het totale fiscaal loon van je partner over {year}?",
+  "From your partner's jaaropgaaf ('Fiscaal loon'). Enter 0 if they had no income.": "Van de jaaropgaaf van je partner ('Fiscaal loon'). Vul 0 in als je partner geen inkomen had.",
+  "How much tax was taken from your partner's pay?": "Hoeveel loonheffing is er bij je partner ingehouden?",
+  "'Ingehouden loonheffing' on their jaaropgaaf. Enter 0 if none.": "'Ingehouden loonheffing' op de jaaropgaaf. Vul 0 in als er niets is.",
+  "Did your partner get a provisional assessment (voorlopige aanslag) for {year}?": "Kreeg je partner een voorlopige aanslag over {year}?",
+  "Yes, they got money back": "Ja, mijn partner kreeg geld terug",
+  "Yes, they paid money": "Ja, mijn partner betaalde",
+  "What was the total amount for your partner?": "Wat was het totale bedrag voor je partner?",
+
+  // ---------- Questions: home ----------
+  "Did you rent or own the home you lived in during {year}?": "Huurde je je woning in {year}, of was die van jou?",
+  "If you owned it for part of the year, choose 'I owned it'.": "Was het een deel van het jaar van jou? Kies dan 'Het was van mij'.",
+  "I rented, or lived with others": "Ik huurde, of woonde bij anderen",
+  "I owned it": "Het was van mij",
+  "Did you buy or sell a home in {year}?": "Heb je in {year} een huis gekocht of verkocht?",
+  "Use the date you signed at the notary, not the date you agreed the price.": "Het gaat om de datum bij de notaris, niet de datum waarop je het eens werd over de prijs.",
+  "I bought one": "Ik heb er een gekocht",
+  "I sold one": "Ik heb er een verkocht",
+  "I sold one and bought another": "Ik heb er een verkocht en een ander gekocht",
+  "How much of the home is yours?": "Hoeveel van de woning is van jou?",
+  "With a fiscal partner, count what you own together.": "Met een fiscale partner: tel wat jullie samen bezitten.",
+  "All of it": "Alles",
+  "Half": "De helft",
+  "For how many months of {year} did you own and live in your (new) home?": "Hoeveel maanden in {year} was je (nieuwe) woning van jou en woonde je er?",
+  "Count from the month you got the keys. If you sold your only home, count the months until the sale.":
+    "Tel vanaf de maand dat je de sleutels kreeg. Heb je je enige woning verkocht, tel dan de maanden tot de verkoop.",
+  "What is the WOZ value of that home?": "Wat is de WOZ-waarde van die woning?",
+  "It's on the WOZ letter (WOZ-beschikking) from your municipality, dated early {year}. Just bought it? The seller's letter or the municipality's website (wozwaardeloket.nl) shows it. Use the full value, not your share.":
+    "Het staat op de WOZ-beschikking van je gemeente, van begin {year}. Net gekocht? Kijk op de brief van de verkoper of op wozwaardeloket.nl. Vul de hele waarde in, niet jouw deel.",
+  "What is the WOZ value of the home you sold?": "Wat is de WOZ-waarde van de woning die je verkocht?",
+  "From the WOZ letter for that home, dated early {year}.": "Van de WOZ-beschikking van die woning, van begin {year}.",
+  "For how many months of {year} did you still own the home you sold?": "Hoeveel maanden in {year} had je de verkochte woning nog?",
+  "Count until the month you signed the sale at the notary. If it stood empty and for sale, those months count too.":
+    "Tel tot de maand van de overdracht bij de notaris. Stond hij leeg en te koop, dan tellen die maanden ook mee.",
+  "How much mortgage interest was paid in {year}?": "Hoeveel hypotheekrente is er in {year} betaald?",
+  "It's on the yearly statement from your bank (jaaroverzicht). Use the full amount, not your share. If you moved, add up the interest for both homes. Enter 0 if you have no mortgage.":
+    "Het staat op het jaaroverzicht van je bank. Vul het hele bedrag in, niet jouw deel. Verhuisd? Tel de rente van beide woningen op. Vul 0 in als je geen hypotheek hebt.",
+  "How is your mortgage paid off?": "Hoe los je je hypotheek af?",
+  "Interest is only deductible if you pay off the loan within 30 years (annuity or linear). Interest-only loans from before 2013 are still allowed. Your bank's statement or offer shows the type.":
+    "Rente is alleen aftrekbaar als je in 30 jaar aflost (annuïtair of lineair). Aflossingsvrije leningen van vóór 2013 mogen nog. Je jaaroverzicht of offerte laat het type zien.",
+  "Annuity or linear (I pay it off)": "Annuïtair of lineair (ik los af)",
+  "Interest-only, from before 2013": "Aflossingsvrij, van vóór 2013",
+  "Interest-only, from 2013 or later": "Aflossingsvrij, van 2013 of later",
+  "I don't know": "Weet ik niet",
+  "How much did you pay in one-off costs to get your mortgage?": "Hoeveel eenmalige kosten betaalde je voor je hypotheek?",
+  "These count: mortgage advisor fee, notary costs for the mortgage deed, valuation report (taxatie) and the NHG fee. These don't: transfer tax, notary costs for the purchase deed, estate agent. Your notary's statement (nota van afrekening) lists them. Enter 0 if none.":
+    "Deze tellen mee: hypotheekadvies, notariskosten voor de hypotheekakte, taxatie en de NHG-kosten. Deze niet: overdrachtsbelasting, notariskosten voor de leveringsakte, makelaar. Ze staan op de nota van afrekening van de notaris. Vul 0 in als er niets is.",
+  "Do you pay ground lease (erfpacht) for the land?": "Betaal je erfpacht voor de grond?",
+  "Common in Amsterdam and some other cities. You pay the city a yearly fee (canon) for the land under your home.":
+    "Komt veel voor in Amsterdam en een paar andere steden. Je betaalt de gemeente een jaarlijks bedrag (canon) voor de grond onder je huis.",
+  "How much ground lease did you pay in {year}?": "Hoeveel erfpacht betaalde je in {year}?",
+  "Only the yearly fee (canon). A one-off buyout doesn't count.": "Alleen de jaarlijkse canon. Een eenmalige afkoop telt niet.",
+  "When you sold, was the price more than the mortgage left on that home?": "Was de verkoopprijs hoger dan de hypotheek die nog op die woning stond?",
+  "This changes how much of a new mortgage is deductible, or what happens to any debt left over.":
+    "Dit bepaalt hoeveel van een nieuwe hypotheek aftrekbaar is, of wat er met een restschuld gebeurt.",
+  "Yes, I made a profit": "Ja, ik had overwaarde",
+  "No, some debt was left": "Nee, er bleef schuld over",
+  "About the same": "Ongeveer gelijk",
+  "Did you have a student loan on 1 January {year}?": "Had je op 1 januari {year} een studieschuld?",
+  "From DUO or from a lender abroad. It isn't deductible, but it counts as a debt for your savings tax.":
+    "Bij DUO of bij een lener in het buitenland. Niet aftrekbaar, maar het telt als schuld in box 3.",
+  "How much was left on it on 1 January {year}?": "Hoeveel stond er op 1 januari {year} nog open?",
+  "Mijn DUO shows the amount. Or use the yearly overview from your lender.": "Mijn DUO laat het bedrag zien. Of kijk op het jaaroverzicht van je lener.",
+  "Any other debts on 1 January {year}?": "Andere schulden op 1 januari {year}?",
+  "For example a personal loan, car loan or credit card. Don't include your home mortgage. With a partner, enter both. Enter 0 if none.":
+    "Bijvoorbeeld een persoonlijke lening, autolening of creditcard. Niet je hypotheek. Met een partner: vul die van jullie allebei in. Vul 0 in als er niets is.",
+
+  // ---------- Questions: savings ----------
+  "How much was in your bank and savings accounts on 1 January {year}?": "Hoeveel stond er op 1 januari {year} op je bank- en spaarrekeningen?",
+  "Add up all accounts, also the ones abroad. With a fiscal partner, enter what you have together. Enter 0 if none.":
+    "Tel alle rekeningen op, ook in het buitenland. Met een fiscale partner: vul in wat jullie samen hebben. Vul 0 in als er niets is.",
+  "What were your shares, funds and crypto worth on 1 January {year}?": "Wat waren je aandelen, fondsen en crypto waard op 1 januari {year}?",
+  "Use the value from your broker or exchange statement. With a fiscal partner, enter the total for both of you. Enter 0 if none.":
+    "Gebruik de waarde van je broker of exchange. Met een fiscale partner: het totaal van jullie samen. Vul 0 in als er niets is.",
+  "Did you own any other property on 1 January {year}? Enter its value.": "Had je op 1 januari {year} ander vastgoed? Vul de waarde in.",
+  "For example a second home or a home you rent out, here or abroad. Enter 0 if none.":
+    "Bijvoorbeeld een tweede huis of een huis dat je verhuurt, hier of in het buitenland. Vul 0 in als er niets is.",
+  "How much of that property is in the Netherlands?": "Hoeveel van dat vastgoed staat in Nederland?",
+  "With the 30% ruling from before 2024 you may choose partial non-resident status. Then only Dutch property is taxed here. We work out if that saves you money. Enter 0 if it's all abroad.":
+    "Met de 30%-regeling van vóór 2024 mag je kiezen voor partiële buitenlandse belastingplicht. Dan wordt hier alleen Nederlands vastgoed belast. Wij rekenen uit of dat voordeliger is. Vul 0 in als alles in het buitenland is.",
+
+  // ---------- Questions: deductions ----------
+  "Did you pay healthcare costs yourself that insurance didn't cover?": "Betaalde je zelf zorgkosten die de verzekering niet vergoedde?",
+  "For example some medicines, aids or travel to hospital. Your 'eigen risico' and regular doctor or dentist bills don't count.":
+    "Bijvoorbeeld sommige medicijnen, hulpmiddelen of reiskosten naar het ziekenhuis. Je eigen risico en gewone rekeningen van huisarts of tandarts tellen niet.",
+  "How much did you pay in total?": "Hoeveel betaalde je in totaal?",
+  "Did you give money to a registered charity (ANBI)?": "Heb je geld gegeven aan een goed doel met ANBI-status?",
+  "Only gifts to organisations with ANBI status count. You can check this on the Belastingdienst website.":
+    "Alleen giften aan instellingen met ANBI-status tellen. Je kunt dat checken op de website van de Belastingdienst.",
+  "How much did you give in total?": "Hoeveel gaf je in totaal?",
+  "Did you pay alimony to an ex-partner?": "Betaalde je partneralimentatie aan een ex-partner?",
+  "Only alimony for your ex-partner counts. Child support does not.": "Alleen alimentatie voor je ex-partner telt. Kinderalimentatie niet.",
+  "How much did you pay in {year}?": "Hoeveel betaalde je in {year}?",
+
+  // ---------- Results ----------
+  "Your {year} return · {form}": "Je aangifte {year} · {form}",
+  "P form (normal return)": "P-formulier (gewone aangifte)",
+  "M form (migration year)": "M-formulier (migratiejaar)",
+  "C form (non-residents)": "C-formulier (buitenlands belastingplichtig)",
+  "You may get back": "Je krijgt mogelijk terug",
+  "You may need to pay": "Je moet mogelijk bijbetalen",
+  "Together you may get back": "Samen krijgen jullie mogelijk terug",
+  "Together you may need to pay": "Samen moeten jullie mogelijk bijbetalen",
+  "This is a rough estimate. ": "Dit is een ruwe schatting. ",
+  "This is an estimate. ": "Dit is een schatting. ",
+  "The Belastingdienst decides the final amount.": "De Belastingdienst bepaalt het definitieve bedrag.",
+  "We can't estimate this one yet": "Dit kunnen we nog niet schatten",
+  "Your checklist and filing guide below still work.": "Je checklist en invulhulp hieronder werken wel.",
+  "Print or save as PDF": "Afdrukken of opslaan als pdf",
+  "Change my answers": "Antwoorden wijzigen",
+  "Deadline": "Deadline",
+  "The normal deadline has passed. If you haven't filed yet, file as soon as you can.": "De gewone deadline is voorbij. Heb je nog geen aangifte gedaan? Doe het zo snel mogelijk.",
+  "File before this date, or ask for more time in Mijn Belastingdienst.": "Doe aangifte vóór deze datum, of vraag uitstel aan in Mijn Belastingdienst.",
+  "How we got there": "Zo hebben we het berekend",
+  "You": "Jij",
+  "Together": "Samen",
+  "Salary": "Loon",
+  "Side income (taxable)": "Bijverdienste (belast)",
+  "Income from abroad": "Inkomen uit het buitenland",
+  "Home (forfait minus interest and costs)": "Woning (forfait min rente en kosten)",
+  "Taxable income (box 1)": "Belastbaar inkomen (box 1)",
+  "Tax on box 1": "Belasting box 1",
+  "Relief for tax paid abroad": "Vermindering voor buitenlandse belasting",
+  "Tax on savings (box 3)": "Belasting op sparen (box 3)",
+  "Tax credits": "Heffingskortingen",
+  "Tax owed": "Te betalen belasting",
+  "Already paid via salary": "Al betaald via loon",
+  "Paid via provisional assessment": "Betaald via voorlopige aanslag",
+  "Received via provisional assessment": "Ontvangen via voorlopige aanslag",
+  "Back to you": "Terug naar jou",
+  "To pay": "Bij te betalen",
+  "back {amount}": "terug {amount}",
+  "pay {amount}": "betalen {amount}",
+  "Your document checklist": "Je checklist met papieren",
+  "{n} things to collect before you start. Ticked {done} of {n}.": "{n} dingen om te verzamelen voor je begint. {done} van {n} afgevinkt.",
+  "Follow these steps in Mijn Belastingdienst. Dutch section names are shown so you can find them.":
+    "Volg deze stappen in Mijn Belastingdienst. De Nederlandse namen van de onderdelen staan erbij.",
+  "BelastingBuddy is a guide, not a tax advisor. For complex situations, ask a tax advisor.":
+    "BelastingBuddy is een hulp, geen belastingadviseur. Bij een ingewikkelde situatie: vraag een belastingadviseur.",
+
+  // ---------- Results: notes ----------
+  "C form: we used your Dutch income only. Savings (box 3) are left out, except Dutch property.":
+    "C-formulier: we gebruikten alleen je Nederlandse inkomen. Sparen (box 3) laten we weg, behalve Nederlands vastgoed.",
+  "We can only estimate the C form if at least 90% of your income is taxed in the Netherlands. Your checklist and guide still work.":
+    "We kunnen het C-formulier alleen schatten als minstens 90% van je inkomen in Nederland belast is. Je checklist en invulhulp werken wel.",
+  "M form: we count only income from the months you lived here. The Belastingdienst may split some credits differently.":
+    "M-formulier: we tellen alleen inkomen uit de maanden dat je hier woonde. De Belastingdienst kan sommige kortingen anders verdelen.",
+  "You weren't sure about a fiscal partner, so we calculated as if you have none.": "Je wist niet zeker of je een fiscale partner had, dus we rekenden zonder partner.",
+  "As a business owner you also pay a healthcare contribution (Zvw) of about €{n}. It comes as a separate bill and is not in this result.":
+    "Als ondernemer betaal je ook een Zvw-bijdrage van ongeveer €{n}. Die komt als aparte aanslag en zit niet in deze uitkomst.",
+  "Business costs and investment deductions are not in this estimate. Enter profit after costs.":
+    "Bedrijfskosten en investeringsaftrek zitten niet in deze schatting. Vul je winst na kosten in.",
+  "Income from abroad: we gave a simple estimate of the relief for tax paid abroad. The real relief depends on the tax treaty.":
+    "Inkomen uit het buitenland: we schatten de vermindering voor buitenlandse belasting eenvoudig. De echte vermindering hangt af van het belastingverdrag.",
+  "Income from abroad: you said no tax was paid on it abroad, so we taxed it fully here.":
+    "Inkomen uit het buitenland: je zei dat er daar geen belasting over betaald is, dus we belasten het hier volledig.",
+  "You owned two homes for part of the year. A home that stands empty and is for sale still counts as your own home for up to 3 years, so its interest is usually deductible.":
+    "Je had een deel van het jaar twee woningen. Een woning die leeg staat en te koop is, telt tot 3 jaar nog als eigen woning. De rente is dan meestal aftrekbaar.",
+  "Interest on an interest-only mortgage taken out in 2013 or later is not deductible. That loan counts as a debt in box 3 instead.":
+    "Rente op een aflossingsvrije hypotheek van 2013 of later is niet aftrekbaar. Die lening telt als schuld in box 3.",
+  "We assumed your mortgage interest is deductible. Check your mortgage type with your bank.": "We gingen ervan uit dat je hypotheekrente aftrekbaar is. Check het type hypotheek bij je bank.",
+  "You sold with a profit and bought again. The profit should go into your new home (bijleenregeling). If it didn't, part of your new mortgage interest is not deductible. We didn't include this.":
+    "Je verkocht met overwaarde en kocht opnieuw. Die overwaarde moet in je nieuwe huis (bijleenregeling). Is dat niet zo, dan is een deel van je nieuwe hypotheekrente niet aftrekbaar. Dat zit niet in deze schatting.",
+  "You sold with a profit. If you buy a new home within 3 years, that profit must go into it, or part of the new mortgage interest won't be deductible (bijleenregeling).":
+    "Je verkocht met overwaarde. Koop je binnen 3 jaar een nieuw huis, dan moet die overwaarde erin, anders is een deel van de nieuwe rente niet aftrekbaar (bijleenregeling).",
+  "Debt left after selling (restschuld) counts as a box 3 debt. Its interest is not deductible for homes sold after 2017.":
+    "Een restschuld na verkoop telt als schuld in box 3. De rente is niet aftrekbaar voor woningen verkocht na 2017.",
+  "Rent isn't deductible in the Netherlands. You may be able to get rent benefit (huurtoeslag); you ask for that separately.":
+    "Huur is in Nederland niet aftrekbaar. Misschien heb je recht op huurtoeslag; die vraag je apart aan.",
+  "You didn't live here on 1 January {year}, so box 3 usually doesn't apply this year.": "Je woonde op 1 januari {year} niet hier, dus box 3 geldt dit jaar meestal niet.",
+  "The 2026 savings rate (1.28%) is still provisional. The final rate comes in early 2027.": "Het spaarpercentage voor 2026 (1,28%) is nog voorlopig. Het definitieve percentage komt begin 2027.",
+  "Choosing partial non-resident status saves you about €{n} on box 3. We used it. You must choose it in your return.":
+    "Kiezen voor partiële buitenlandse belastingplicht scheelt je ongeveer €{n} in box 3. We hebben het gebruikt. Je moet het zelf kiezen in je aangifte.",
+  "Your income is low enough to count your healthcare costs {n}% higher. Some costs (like travel) don't get this extra.":
+    "Je inkomen is laag genoeg om je zorgkosten {n}% hoger mee te tellen. Sommige kosten (zoals reiskosten) krijgen dat extra niet.",
+  "You turned 67 in {year}. We split the year into months before and after. The real amount can differ a little.":
+    "Je werd 67 in {year}. We splitsen het jaar in maanden ervoor en erna. Het echte bedrag kan iets afwijken.",
+  "With a fiscal partner you can split your home, deductions and savings between you. We picked the split that gives you the most back together.":
+    "Met een fiscale partner mag je woning, aftrekposten en spaargeld onderling verdelen. Wij kozen de verdeling die jullie samen het meest oplevert.",
+
+  // ---------- Checklist ----------
+  "Your DigiD login (app)": "Je DigiD (app)",
+  "digid.nl – you need it to log in to Mijn Belastingdienst.": "digid.nl – nodig om in te loggen bij Mijn Belastingdienst.",
+  "The M form (migration form)": "Het M-formulier (migratieformulier)",
+  "Check Mijn Belastingdienst, or request it from the Belastingdienst if you didn't get it.": "Kijk in Mijn Belastingdienst, of vraag het aan bij de Belastingdienst als je het niet kreeg.",
+  "Your exact moving date": "Je precieze verhuisdatum",
+  "From your municipality registration (BRP).": "Uit je inschrijving bij de gemeente (BRP).",
+  "The C form (non-residents)": "Het C-formulier (buitenlands belastingplichtig)",
+  "Mijn Belastingdienst, under 'buitenlandse belastingplichtigen'.": "Mijn Belastingdienst, onder 'buitenlandse belastingplichtigen'.",
+  "A jaaropgaaf from every employer or agency": "Een jaaropgaaf van elke werkgever of instantie",
+  "From your employer, UWV or pension fund. Often in your payroll app.": "Van je werkgever, UWV of pensioenfonds. Vaak in je salarisapp.",
+  "Your partner's jaaropgaaf and DigiD": "De jaaropgaaf en DigiD van je partner",
+  "You file together, so you need their numbers too.": "Jullie doen samen aangifte, dus je hebt die gegevens ook nodig.",
+  "Proof of your worldwide income (Inkomensverklaring)": "Bewijs van je wereldinkomen (Inkomensverklaring)",
+  "Get it signed by the tax office where you live. You need it to be a qualifying non-resident.":
+    "Laat die tekenen door de belastingdienst van je woonland. Nodig om kwalificerend buitenlands belastingplichtig te zijn.",
+  "Your 30% ruling decision letter": "De beschikking van je 30%-regeling",
+  "Ask your employer or HR if you don't have it.": "Vraag je werkgever of HR als je die niet hebt.",
+  "Proof of income abroad and tax paid there": "Bewijs van buitenlands inkomen en de daar betaalde belasting",
+  "Payslips, foreign tax returns or tax assessments.": "Loonstroken, buitenlandse aangiftes of aanslagen.",
+  "Your income and costs from side work": "Je inkomsten en kosten uit bijverdienste",
+  "Your invoices and bookkeeping.": "Je facturen en boekhouding.",
+  "Your hours log for the business": "Je urenregistratie voor je bedrijf",
+  "Needed if you claim the 1,225-hour deduction (zelfstandigenaftrek).": "Nodig als je zelfstandigenaftrek claimt (1.225 uur).",
+  "Your provisional assessment letter (voorlopige aanslag)": "De brief van je voorlopige aanslag",
+  "Mijn Belastingdienst or the letter by post.": "Mijn Belastingdienst of de brief per post.",
+  "WOZ letter (WOZ-beschikking)": "WOZ-beschikking",
+  "From your municipality, often in MijnOverheid, or wozwaardeloket.nl.": "Van je gemeente, vaak in MijnOverheid, of via wozwaardeloket.nl.",
+  "Mortgage yearly statement (jaaroverzicht)": "Jaaroverzicht van je hypotheek",
+  "From your bank or mortgage provider. One for each loan.": "Van je bank of hypotheekverstrekker. Eén per lening.",
+  "Notary statement for your purchase (nota van afrekening)": "Nota van afrekening van de notaris (aankoop)",
+  "From your notary. It lists the one-off costs.": "Van je notaris. Hier staan de eenmalige kosten op.",
+  "Invoice from your mortgage advisor": "Factuur van je hypotheekadviseur",
+  "From your advisor or bank.": "Van je adviseur of bank.",
+  "Notary statement for your sale": "Nota van afrekening van de notaris (verkoop)",
+  "Shows the sale price and the mortgage paid off.": "Hierop staan de verkoopprijs en de afgeloste hypotheek.",
+  "WOZ letter for the home you sold": "WOZ-beschikking van de verkochte woning",
+  "From the municipality where that home is.": "Van de gemeente waar die woning staat.",
+  "Ground lease (erfpacht) statement": "Overzicht van je erfpacht",
+  "From your city. Shows the yearly fee (canon) you paid.": "Van je gemeente. Hier staat de betaalde canon op.",
+  "Student loan balance on 1 January {y}": "Stand studieschuld op 1 januari {y}",
+  "Mijn DUO, or your lender's yearly overview.": "Mijn DUO, of het jaaroverzicht van je lener.",
+  "Statements for your other debts": "Overzichten van je andere schulden",
+  "From your lender or credit card provider.": "Van je lener of creditcardmaatschappij.",
+  "Bank balances on 1 January {y}": "Banksaldi op 1 januari {y}",
+  "Yearly statements from every bank, also abroad.": "Jaaroverzichten van elke bank, ook in het buitenland.",
+  "Investment values on 1 January {y}": "Waarde beleggingen op 1 januari {y}",
+  "Yearly statement from your broker or crypto exchange.": "Jaaroverzicht van je broker of crypto-exchange.",
+  "Value of your other property": "Waarde van je andere vastgoed",
+  "WOZ letter, or a valuation for property abroad.": "WOZ-beschikking, of een taxatie voor vastgoed in het buitenland.",
+  "Receipts for healthcare costs": "Bonnetjes van zorgkosten",
+  "Bills, and what your insurer paid back.": "Rekeningen, en wat je verzekeraar vergoedde.",
+  "Proof of gifts to charities": "Bewijs van giften aan goede doelen",
+  "Bank statements or receipts from the charity.": "Bankafschriften of kwitanties van het goede doel.",
+  "Alimony agreement and payments": "Alimentatie-afspraken en betalingen",
+  "Your court order or agreement, plus bank statements.": "De uitspraak of het convenant, plus bankafschriften.",
+
+  // ---------- Filing guide ----------
+  "Log in and open your {y} return": "Log in en open je aangifte {y}",
+  "Go to Mijn Belastingdienst and log in with DigiD.": "Ga naar Mijn Belastingdienst en log in met DigiD.",
+  "Choose the M form (migration year).": "Kies het M-formulier (migratiejaar).",
+  "Choose the return for non-residents (C form).": "Kies de aangifte voor buitenlandse belastingplichtigen (C-formulier).",
+  "Choose the normal {y} return.": "Kies de gewone aangifte {y}.",
+  "Choose to file together with your fiscal partner. It's usually easier.": "Kies ervoor samen met je fiscale partner aangifte te doen. Dat is meestal makkelijker.",
+  "Check your income": "Controleer je inkomen",
+  "This is usually filled in already. Compare it with your jaaropgaaf.": "Dit is meestal al ingevuld. Vergelijk het met je jaaropgaaf.",
+  "Fiscal wage (fiscaal loon)": "Fiscaal loon",
+  "Tax withheld (ingehouden loonheffing)": "Ingehouden loonheffing",
+  "Your partner's fiscal wage": "Fiscaal loon van je partner",
+  "Your partner's tax withheld": "Ingehouden loonheffing van je partner",
+  "Fill in your business profit": "Vul je winst uit onderneming in",
+  "Fill in your other work": "Vul je overige werkzaamheden in",
+  "Profit (income minus costs)": "Winst (omzet min kosten)",
+  "Tick that you met the hours rule (urencriterium).": "Vink aan dat je aan het urencriterium voldoet.",
+  "Don't tick the hours rule (urencriterium).": "Vink het urencriterium niet aan.",
+  "Tick the starter deduction (startersaftrek).": "Vink de startersaftrek aan.",
+  "The SME profit exemption (mkb-winstvrijstelling) is applied for you.": "De mkb-winstvrijstelling wordt automatisch toegepast.",
+  "Add your income from abroad": "Vul je buitenlandse inkomen in",
+  "Income abroad, before tax": "Buitenlands inkomen, vóór belasting",
+  "Ask for relief from double taxation (voorkoming dubbele belasting). Fill in the country and the amount.":
+    "Vraag voorkoming van dubbele belasting aan. Vul het land en het bedrag in.",
+  "If tax was paid abroad after all, ask for relief. Keep proof.": "Is er toch buitenlandse belasting betaald? Vraag dan vermindering aan. Bewaar bewijs.",
+  "Fill in your home": "Vul je woning in",
+  "WOZ value (full home)": "WOZ-waarde (hele woning)",
+  "WOZ value of the home you sold": "WOZ-waarde van de verkochte woning",
+  "Add both homes, each with its own dates.": "Vul beide woningen in, elk met eigen data.",
+  "Mortgage interest paid (full amount)": "Betaalde hypotheekrente (hele bedrag)",
+  "Don't deduct this interest. Report the loan under box 3 debts.": "Trek deze rente niet af. Geef de lening op als schuld in box 3.",
+  "One-off mortgage costs (financieringskosten)": "Financieringskosten (eenmalig)",
+  "Ground lease paid (erfpachtcanon)": "Betaalde erfpachtcanon",
+  "Your share of the home": "Jouw deel van de woning",
+  "Mijn Belastingdienst asks if you used profit from an earlier home. Answer with your notary statements at hand.":
+    "Mijn Belastingdienst vraagt of je overwaarde van een eerdere woning had. Houd je notarisnota's bij de hand.",
+  "Check the bank details are already filled in. Interest is often pre-filled.": "Check of de bankgegevens al zijn ingevuld. De rente staat er vaak al.",
+  "Fill in savings, investments and debts": "Vul sparen, beleggen en schulden in",
+  "Bank and savings on 1 January": "Bank en sparen op 1 januari",
+  "Shares, funds and crypto on 1 January": "Aandelen, fondsen en crypto op 1 januari",
+  "Other property": "Ander vastgoed",
+  "Student loan on 1 January": "Studieschuld op 1 januari",
+  "Other debts on 1 January": "Andere schulden op 1 januari",
+  "Dutch bank accounts are often pre-filled. Add accounts abroad yourself.": "Nederlandse rekeningen staan er vaak al in. Buitenlandse rekeningen vul je zelf in.",
+  "Choose partial non-resident status (partiële buitenlandse belastingplicht). Then only fill in Dutch property here.":
+    "Kies voor partiële buitenlandse belastingplicht. Vul dan hier alleen Nederlands vastgoed in.",
+  "Partial non-resident status doesn't save you money this year, so don't choose it.": "Partiële buitenlandse belastingplicht levert dit jaar niets op, dus kies het niet.",
+  "Healthcare costs you paid (specifieke zorgkosten)": "Specifieke zorgkosten die je betaalde",
+  "Gifts to charities (giften)": "Giften",
+  "Alimony paid (partneralimentatie)": "Betaalde partneralimentatie",
+  "Give this share of the deductions to you (the rest to your partner)": "Geef dit deel van de aftrekposten aan jou (de rest aan je partner)",
+  "Add your deductions": "Vul je aftrekposten in",
+  "Split shared items with your partner": "Verdeel gezamenlijke posten met je partner",
+  "Home and deductions: your share": "Woning en aftrekposten: jouw deel",
+  "Savings and investments (box 3): your share": "Sparen en beleggen (box 3): jouw deel",
+  "Mijn Belastingdienst often suggests the best split itself. Compare it with ours.": "Mijn Belastingdienst stelt vaak zelf de beste verdeling voor. Vergelijk die met de onze.",
+  "Check the result and send": "Controleer de uitkomst en verstuur",
+  "Compare the final amount with our estimate. A big difference means something is missing.":
+    "Vergelijk de uitkomst met onze schatting. Een groot verschil betekent dat er iets mist.",
+  "Download a copy (PDF) for your records, then send.": "Download een kopie (pdf) voor je administratie en verstuur dan.",
+
+  // ---------- Privacy ----------
+  "Privacy, in plain English": "Privacy, in gewone taal",
+  "Your tax answers are saved only in this browser, on this device.": "Je antwoorden over je belasting worden alleen in deze browser opgeslagen, op dit apparaat.",
+  "We don't send your tax answers to any server.": "We sturen je antwoorden over je belasting niet naar een server.",
+  "If you send feedback or ask for a deadline reminder, we store that message or your email address in a database in the EU. We use it only for that purpose, and you can ask us to delete it.":
+    "Stuur je feedback of vraag je een herinnering aan? Dan bewaren we dat bericht of je e-mailadres in een database in de EU. We gebruiken het alleen daarvoor, en je kunt vragen het te verwijderen.",
+  "We count visits with Cloudflare Web Analytics. It uses no cookies and doesn't track you across sites.":
+    "We tellen bezoeken met Cloudflare Web Analytics. Dat gebruikt geen cookies en volgt je niet op andere sites.",
+  "We never ask for your DigiD, password or BSN.": "We vragen nooit om je DigiD, wachtwoord of BSN.",
+  "You file your return yourself, on Mijn Belastingdienst.": "Je doet zelf aangifte, via Mijn Belastingdienst.",
+  "You can delete your answers at any time with the button below.": "Je kunt je antwoorden altijd wissen met de knop hieronder.",
+  "Done. Your answers are deleted from this browser.": "Klaar. Je antwoorden zijn uit deze browser gewist.",
+
+  // ---------- Guides (page chrome; articles stay in English) ----------
+  "Dutch tax, in plain English": "Belastingen, in gewone taal",
+  "Short guides for expats and residents. No jargon, just what you need for your return.":
+    "Korte gidsen voor expats en inwoners. Geen vakjargon, alleen wat je nodig hebt voor je aangifte.",
+  "Read the guide →": "Lees de gids →",
+  "← All guides": "← Alle gidsen",
+  "This guide is in English.": "Deze gids is in het Engels.",
+  "Ready to start?": "Klaar om te beginnen?",
+  "Find out what to fill in, step by step.": "Ontdek stap voor stap wat je invult.",
+  "Start my return →": "Start mijn aangifte →",
+  "More guides": "Meer gidsen",
+
+  // ---------- Scan and reminders (F19, F18) ----------
+  "Scan your jaaropgaaf": "Scan je jaaropgaaf",
+  "Take a photo or choose a picture. It's read in your browser and never uploaded.":
+    "Maak een foto of kies een afbeelding. Die wordt in je browser gelezen en nooit geüpload.",
+  "Reading your jaaropgaaf…": "Je jaaropgaaf wordt gelezen…",
+  "We found these numbers. Check them before you use them.": "We vonden deze bedragen. Controleer ze voordat je ze gebruikt.",
+  "Use these numbers": "Gebruik deze bedragen",
+  "We couldn't read the numbers. Please type them in.": "We konden de bedragen niet lezen. Typ ze zelf in.",
+  "Fiscal wage": "Fiscaal loon",
+  "Tax withheld": "Ingehouden loonheffing",
+  "not found": "niet gevonden",
+  "Remind me before the deadline": "Herinner me voor de deadline",
+  "We'll send one email in March, when filing opens, and one two weeks before the deadline. Nothing else.":
+    "We sturen één e-mail in maart, als de aangifte opengaat, en één twee weken voor de deadline. Verder niets.",
+  "Your email": "Je e-mailadres",
+  "Remind me": "Herinner me",
+  "Check your inbox and click the link to confirm.": "Kijk in je inbox en klik op de link om te bevestigen.",
+  "Reminders aren't available yet. Please check back soon.": "Herinneringen zijn er nog niet. Kijk binnenkort nog eens.",
+  "Please enter a valid email address.": "Vul een geldig e-mailadres in.",
 };

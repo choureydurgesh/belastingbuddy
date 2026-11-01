@@ -19,8 +19,10 @@ import {
 } from "@/lib/questions";
 import { deleteSaved, loadSaved, saveAnswers } from "@/lib/storage";
 import { parseMoney } from "@/lib/money";
+import { useLang } from "@/lib/i18n";
 
 export function ReturnApp() {
+  const { t } = useLang();
   const [answers, setAnswers] = useState<Answers>({});
   const [loaded, setLoaded] = useState(false);
   const [editingId, setEditingId] = useState<keyof Answers | null>(null);
@@ -91,16 +93,16 @@ export function ReturnApp() {
       <div className="wrap">
         <Nav />
         <div className="row">
-          <section className="tile chat-tile" aria-label="Questions">
+          <section className="tile chat-tile" aria-label={t("Questions")}>
             <div className="chat-head">
               <div>
-                <div className="eyebrow">Question {Math.min(currentIndex + 1, visible.length)} of {visible.length}</div>
+                <div className="eyebrow">{t(`Question ${Math.min(currentIndex + 1, visible.length)} of ${visible.length}`)}</div>
                 <div className="progress" aria-hidden="true">
                   <div className="progress-bar" style={{ width: `${(answeredCount / Math.max(1, visible.length)) * 100}%` }} />
                 </div>
               </div>
               <button className="btn btn-ghost" onClick={back} disabled={currentIndex <= 0}>
-                ← Back
+                {t("← Back")}
               </button>
             </div>
 
@@ -112,7 +114,7 @@ export function ReturnApp() {
           <aside className="stack side">
             <EstimateTile estimate={estimate} hasIncome={answers.hasJob !== undefined} />
             <div className="tile">
-              <div className="eyebrow">Your route</div>
+              <div className="eyebrow">{t("Your route")}</div>
               <ol className="route">
                 {SECTIONS.map((s) => {
                   const qs = visible.filter((q) => q.section === s.id);
@@ -121,9 +123,9 @@ export function ReturnApp() {
                   return (
                     <li key={s.id} className={done ? "done" : active ? "active" : ""}>
                       <span className="dot" aria-hidden="true">{done ? "✓" : ""}</span>
-                      {s.title}
-                      {done && <span className="sr-only"> (done)</span>}
-                      {active && <span className="sr-only"> (now)</span>}
+                      {t(s.title)}
+                      {done && <span className="sr-only"> {t("(done)")}</span>}
+                      {active && <span className="sr-only"> {t("(now)")}</span>}
                     </li>
                   );
                 })}
@@ -148,6 +150,8 @@ function ChatLog({
   onChange: (id: keyof Answers) => void;
   current: Question | null;
 }) {
+  const { t } = useLang();
+  const tq = (s: string) => t(withYear(s, answers));
   // Keep the newest messages in view (scrolls only the chat box, not the page).
   const logRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -160,16 +164,16 @@ function ChatLog({
     <div className="chat-log" ref={logRef}>
       {history.length === 0 && (
         <div className="bubble bot">
-          Hi! I'll ask you a few simple questions about your tax return. Your answers stay in this browser. Let's start.
+          {t("Hi! I'll ask you a few simple questions about your tax return. Your answers stay in this browser. Let's start.")}
         </div>
       )}
       {history.map((q) => (
         <div key={q.id} className="pair">
-          <div className="bubble bot">{withYear(q.text, answers)}</div>
+          <div className="bubble bot">{tq(q.text)}</div>
           <div className="bubble user">
-            {withYear(answerLabel(q, answers[q.id]), answers)}
-            <button className="change" onClick={() => onChange(q.id)} aria-label={`Change answer: ${withYear(q.text, answers)}`}>
-              Change
+            {tq(answerLabel(q, answers[q.id]))}
+            <button className="change" onClick={() => onChange(q.id)} aria-label={t(`Change answer: ${tq(q.text)}`)}>
+              {t("Change")}
             </button>
           </div>
         </div>
@@ -177,9 +181,9 @@ function ChatLog({
     </div>
     {current && (
       <div className="bubble bot current" aria-live="polite">
-        <div className="q-section">{SECTIONS.find((s) => s.id === current.section)?.title}</div>
-        <div className="q-text">{withYear(current.text, answers)}</div>
-        {current.help && <div className="q-help">{withYear(current.help, answers)}</div>}
+        <div className="q-section">{t(SECTIONS.find((s) => s.id === current.section)?.title ?? "")}</div>
+        <div className="q-text">{tq(current.text)}</div>
+        {current.help && <div className="q-help">{tq(current.help)}</div>}
       </div>
     )}
     </>
@@ -197,19 +201,21 @@ function AnswerInput({
   onAnswer: (q: Question, v: string | number) => void;
   answers: Answers;
 }) {
+  const { t } = useLang();
+  const tq = (s: string) => t(withYear(s, answers));
   const [text, setText] = useState(value !== undefined ? String(value) : "");
   const [error, setError] = useState("");
 
   if (question.kind === "choice") {
     return (
-      <div className="answer chips" role="group" aria-label="Choose an answer">
+      <div className="answer chips" role="group" aria-label={t("Choose an answer")}>
         {question.options!.map((o) => (
           <button
             key={String(o.value)}
             className={"chip " + (value === o.value ? "chip-accent" : "chip-outline")}
             onClick={() => onAnswer(question, o.value)}
           >
-            {withYear(o.label, answers)}
+            {tq(o.label)}
           </button>
         ))}
       </div>
@@ -220,16 +226,16 @@ function AnswerInput({
   function submit(e: FormEvent) {
     e.preventDefault();
     const v = isMoney ? parseMoney(text) : Number(text);
-    if (v === null || isNaN(v)) return setError(isMoney ? "Please enter an amount, like 45000." : "Please enter a number.");
-    if (question.min !== undefined && v < question.min) return setError(`Please enter at least ${question.min}.`);
-    if (question.max !== undefined && v > question.max) return setError(`Please enter at most ${question.max}.`);
+    if (v === null || isNaN(v)) return setError(t(isMoney ? "Please enter an amount, like 45000." : "Please enter a number."));
+    if (question.min !== undefined && v < question.min) return setError(t(`Please enter at least ${question.min}.`));
+    if (question.max !== undefined && v > question.max) return setError(t(`Please enter at most ${question.max}.`));
     onAnswer(question, v);
   }
 
   return (
     <form className="answer input-row" onSubmit={submit} noValidate>
       <label htmlFor="answer-input" className="sr-only">
-        {withYear(question.text, answers)}
+        {tq(question.text)}
       </label>
       {isMoney && <span className="prefix" aria-hidden="true">€</span>}
       <input
@@ -247,7 +253,7 @@ function AnswerInput({
         autoFocus
       />
       <button className="btn btn-accent" type="submit">
-        Next →
+        {t("Next →")}
       </button>
       {error && (
         <div id="answer-error" className="error" role="alert">
@@ -259,20 +265,23 @@ function AnswerInput({
 }
 
 function EstimateTile({ estimate, hasIncome }: { estimate: ReturnType<typeof calculate>; hasIncome: boolean }) {
+  const { t } = useLang();
   const show = estimate.available && hasIncome;
   const refund = estimate.result >= 0;
   return (
     <div className="tile tile-blue" aria-live="polite">
-      <div className="eyebrow eyebrow-blue">{show ? (refund ? "Estimated refund" : "Estimated to pay") : "Refund estimate"}</div>
+      <div className="eyebrow eyebrow-blue">{t(show ? (refund ? "Estimated refund" : "Estimated to pay") : "Refund estimate")}</div>
       <div className="big-number">{show ? formatEuro(Math.abs(estimate.result)) : "€ —"}</div>
       <div className="muted-blue">
-        {!estimate.available
-          ? "We can't estimate your situation yet."
-          : show
-            ? estimate.rough
-              ? "Rough estimate. It updates as you answer."
-              : "Updates as you answer."
-            : "Shows up once you've told us about your income."}
+        {t(
+          !estimate.available
+            ? "We can't estimate your situation yet."
+            : show
+              ? estimate.rough
+                ? "Rough estimate. It updates as you answer."
+                : "Updates as you answer."
+              : "Shows up once you've told us about your income.",
+        )}
       </div>
     </div>
   );

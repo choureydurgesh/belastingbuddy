@@ -7,6 +7,7 @@ import { formatEuro } from "@/lib/questions";
 import { buildChecklist } from "@/lib/checklist";
 import { buildGuide } from "@/lib/guide";
 import { DeleteButton } from "./DeleteButton";
+import { useLang } from "@/lib/i18n";
 
 const FORM_NAME: Record<string, string> = {
   resident: "P form (normal return)",
@@ -26,69 +27,74 @@ export function Results({
   onEdit: () => void;
   onDelete: () => void;
 }) {
+  const { t, lang } = useLang();
   const RULES = rulesFor(answers);
   const checklist = buildChecklist(answers);
   const guide = buildGuide(answers, estimate);
   const [ticked, setTicked] = useState<Record<string, boolean>>({});
   const refund = estimate.result >= 0;
   const deadline = new Date(RULES.deadline);
-  const deadlineText = deadline.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+  const deadlineText = deadline.toLocaleDateString(lang === "nl" ? "nl-NL" : "en-GB", { day: "numeric", month: "long", year: "numeric" });
   const pastDeadline = Date.now() > deadline.getTime();
 
   return (
     <div className="results">
       <div className="row">
         <section className="tile hero results-hero">
-          <div className="pill">Your {RULES.year} return · {FORM_NAME[answers.residency ?? "resident"]}</div>
+          <div className="pill">{t(`Your ${RULES.year} return · ${t(FORM_NAME[answers.residency ?? "resident"])}`)}</div>
           {estimate.available ? (
             <>
               <h1 className="result-number">
-                <span className="result-label">{estimate.partner ? (refund ? "Together you may get back" : "Together you may need to pay") : refund ? "You may get back" : "You may need to pay"}</span>
+                <span className="result-label">
+                  {t(estimate.partner ? (refund ? "Together you may get back" : "Together you may need to pay") : refund ? "You may get back" : "You may need to pay")}
+                </span>
                 {formatEuro(Math.abs(estimate.result))}
               </h1>
               <p className="lead">
-                {estimate.rough ? "This is a rough estimate. " : "This is an estimate. "}
-                The Belastingdienst decides the final amount.
+                {t(estimate.rough ? "This is a rough estimate. " : "This is an estimate. ")}
+                {t("The Belastingdienst decides the final amount.")}
               </p>
             </>
           ) : (
             <>
-              <h1 className="result-number small">We can't estimate this one yet</h1>
-              <p className="lead">Your checklist and filing guide below still work.</p>
+              <h1 className="result-number small">{t("We can't estimate this one yet")}</h1>
+              <p className="lead">{t("Your checklist and filing guide below still work.")}</p>
             </>
           )}
           {estimate.notes.length > 0 && (
             <ul className="notes">
               {estimate.notes.map((n) => (
-                <li key={n}>{n}</li>
+                <li key={n}>{t(n)}</li>
               ))}
             </ul>
           )}
           <div className="cta-group">
             {process.env.NEXT_PUBLIC_PREVIEW !== "1" && (
               <button className="btn btn-dark" onClick={() => window.print()}>
-                Print or save as PDF
+                {t("Print or save as PDF")}
               </button>
             )}
             <button className="btn btn-ghost" onClick={onEdit}>
-              Change my answers
+              {t("Change my answers")}
             </button>
           </div>
         </section>
 
         <aside className="stack side">
           <div className={"tile " + (pastDeadline ? "tile-accent" : "tile-dark")}>
-            <div className="eyebrow">Deadline</div>
+            <div className="eyebrow">{t("Deadline")}</div>
             <div className="tile-q">{deadlineText}</div>
             <p className="small-text">
-              {pastDeadline
-                ? "The normal deadline has passed. If you haven't filed yet, file as soon as you can."
-                : "File before this date, or ask for more time in Mijn Belastingdienst."}
+              {t(
+                pastDeadline
+                  ? "The normal deadline has passed. If you haven't filed yet, file as soon as you can."
+                  : "File before this date, or ask for more time in Mijn Belastingdienst.",
+              )}
             </p>
           </div>
           {estimate.available && (
             <div className="tile">
-              <div className="eyebrow">How we got there</div>
+              <div className="eyebrow">{t("How we got there")}</div>
               {estimate.partner ? (
                 <>
                   <Breakdown title="You" p={estimate.you} />
@@ -109,10 +115,9 @@ export function Results({
 
       <div className="row">
         <section className="tile half" aria-labelledby="checklist-title">
-          <h2 id="checklist-title">Your document checklist</h2>
+          <h2 id="checklist-title">{t("Your document checklist")}</h2>
           <p className="muted">
-            {checklist.length} things to collect before you start. Ticked {Object.values(ticked).filter(Boolean).length} of{" "}
-            {checklist.length}.
+            {t(`${checklist.length} things to collect before you start. Ticked ${Object.values(ticked).filter(Boolean).length} of ${checklist.length}.`)}
           </p>
           <ul className="checklist">
             {checklist.map((item) => (
@@ -124,8 +129,8 @@ export function Results({
                   onChange={(e) => setTicked({ ...ticked, [item.id]: e.target.checked })}
                 />
                 <label htmlFor={`chk-${item.id}`}>
-                  <strong>{item.title}</strong>
-                  <span>{item.where}</span>
+                  <strong>{t(item.title)}</strong>
+                  <span>{t(item.where)}</span>
                 </label>
               </li>
             ))}
@@ -133,18 +138,18 @@ export function Results({
         </section>
 
         <section className="tile half" aria-labelledby="guide-title">
-          <h2 id="guide-title">Your filing guide</h2>
-          <p className="muted">Follow these steps in Mijn Belastingdienst. Dutch section names are shown so you can find them.</p>
+          <h2 id="guide-title">{t("Your filing guide")}</h2>
+          <p className="muted">{t("Follow these steps in Mijn Belastingdienst. Dutch section names are shown so you can find them.")}</p>
           <ol className="guide">
             {guide.map((step) => (
               <li key={step.title}>
                 <div className="guide-title">
-                  {step.title} <span className="dutch">{step.dutch}</span>
+                  {t(step.title)} <span className="dutch">{step.dutch}</span>
                 </div>
                 <ul>
                   {step.lines.map((l) => (
                     <li key={l.label}>
-                      <span>{l.label}</span>
+                      <span>{t(l.label)}</span>
                       {l.value && <strong className="value">{l.value}</strong>}
                     </li>
                   ))}
@@ -156,7 +161,7 @@ export function Results({
       </div>
 
       <p className="footnote no-print">
-        BelastingBuddy is a guide, not a tax advisor. For complex situations, ask a tax advisor.{" "}
+        {t("BelastingBuddy is a guide, not a tax advisor. For complex situations, ask a tax advisor.")}{" "}
         <DeleteButton onConfirm={onDelete} />
       </p>
     </div>
@@ -164,10 +169,11 @@ export function Results({
 }
 
 function Breakdown({ title, p }: { title?: string; p: PersonResult }) {
+  const { t } = useLang();
   const credits = p.generalCredit + p.labourCredit + p.elderlyCredit;
   return (
     <table className="breakdown">
-      {title && <caption>{title}</caption>}
+      {title && <caption>{t(title)}</caption>}
       <tbody>
         {p.wage > 0 && <Line label="Salary" value={p.wage} />}
         {p.sideIncome !== 0 && <Line label="Side income (taxable)" value={p.sideIncome} />}
@@ -190,12 +196,13 @@ function Breakdown({ title, p }: { title?: string; p: PersonResult }) {
 }
 
 function Line({ label, value, strong, signed }: { label: string; value: number; strong?: boolean; signed?: boolean }) {
+  const { t } = useLang();
   const text = signed
-    ? (value >= 0 ? "back " : "pay ") + formatEuro(Math.abs(value))
+    ? t((value >= 0 ? "back " : "pay ") + formatEuro(Math.abs(value)))
     : (value < 0 ? "− " : "") + formatEuro(Math.abs(value));
   return (
     <tr className={strong ? "strong" : ""}>
-      <td>{label}</td>
+      <td>{t(label)}</td>
       <td className="num">{text}</td>
     </tr>
   );

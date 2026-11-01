@@ -6,6 +6,7 @@ import { Nav } from "./Nav";
 import { loadSaved } from "@/lib/storage";
 import { YEARS } from "@/lib/tax/calculate";
 import { GUIDES } from "@/lib/guides";
+import { T, useLang } from "@/lib/i18n";
 
 const Arrow = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
@@ -14,6 +15,7 @@ const Arrow = () => (
 );
 
 export function HomePage() {
+  const { t } = useLang();
   // F10: show "continue" if the user already started.
   const [hasSaved, setHasSaved] = useState(false);
   useEffect(() => {
@@ -28,19 +30,19 @@ export function HomePage() {
 
         <div className="row">
           <section className="tile hero">
-            <div className="pill">Tax years {YEARS.slice().reverse().join(" and ")} · for expats and residents</div>
+            <div className="pill">{t(`Tax years ${YEARS.slice().reverse().join(t(" and "))} · for expats and residents`)}</div>
             <h1>
-              Dutch taxes,
+              {t("Dutch taxes,")}
               <br />
-              without the Dutch.
+              {t("without the Dutch.")}
             </h1>
             <div className="hero-foot">
               <p className="lead">
-                We ask simple questions in plain English. You get a checklist and exactly what to type into Mijn Belastingdienst.
+                {t("We ask simple questions in plain English. You get a checklist and exactly what to type into Mijn Belastingdienst.")}
               </p>
               <div className="cta-group">
                 <Link href="/return/" className="btn btn-accent btn-lg">
-                  {hasSaved ? "Continue my return" : "Start my return"} <Arrow />
+                  {t(hasSaved ? "Continue my return" : "Start my return")} <Arrow />
                 </Link>
               </div>
             </div>
@@ -48,18 +50,18 @@ export function HomePage() {
 
           <div className="stack side">
             <div className="tile tile-dark">
-              <div className="eyebrow eyebrow-muted">What it feels like</div>
-              <div className="tile-q">Did you have the 30% ruling?</div>
+              <div className="eyebrow eyebrow-muted">{t("What it feels like")}</div>
+              <div className="tile-q">{t("Did you have the 30% ruling?")}</div>
               <div className="chips">
-                <Link href="/return/" className="chip chip-accent">Yes</Link>
-                <Link href="/return/" className="chip chip-dark">No</Link>
-                <Link href="/return/" className="chip chip-dark">Not sure</Link>
+                <Link href="/return/" className="chip chip-accent">{t("Yes")}</Link>
+                <Link href="/return/" className="chip chip-dark">{t("No")}</Link>
+                <Link href="/return/" className="chip chip-dark">{t("Not sure")}</Link>
               </div>
             </div>
             <div className="tile tile-blue">
-              <div className="eyebrow eyebrow-blue">Refund estimate</div>
-              <div className="big-number">Live</div>
-              <div className="muted-blue">Updates every time you answer a question.</div>
+              <div className="eyebrow eyebrow-blue">{t("Refund estimate")}</div>
+              <div className="big-number">{t("Live")}</div>
+              <div className="muted-blue">{t("Updates every time you answer a question.")}</div>
             </div>
           </div>
         </div>
@@ -73,8 +75,8 @@ export function HomePage() {
 
         <section className="tile guides-strip" aria-labelledby="guides-title">
           <div className="guides-strip-head">
-            <h2 id="guides-title">Guides</h2>
-            <Link href="/guides/">All guides →</Link>
+            <h2 id="guides-title">{t("Guides")}</h2>
+            <Link href="/guides/">{t("All guides →")}</Link>
           </div>
           <ul className="guides-links">
             {GUIDES.map((g) => (
@@ -86,8 +88,8 @@ export function HomePage() {
         </section>
 
         <p className="footnote">
-          BelastingBuddy is a guide, not a tax advisor. You file your own return on Mijn Belastingdienst. Your answers stay in this
-          browser. <Link href="/privacy/">Privacy</Link>
+          {t("BelastingBuddy is a guide, not a tax advisor. You file your own return on Mijn Belastingdienst. Your answers stay in this browser.")}{" "}
+          <Link href="/privacy/">{t("Privacy")}</Link>
         </p>
       </div>
     </div>
@@ -121,8 +123,12 @@ function FeatureTile({ title, text, icon, accent }: { title: string; text: strin
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         {paths[icon]}
       </svg>
-      <h3>{title}</h3>
-      <p>{text}</p>
+      <h3>
+        <T>{title}</T>
+      </h3>
+      <p>
+        <T>{text}</T>
+      </p>
     </div>
   );
 }
