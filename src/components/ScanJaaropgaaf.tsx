@@ -58,6 +58,21 @@ async function ocr(image: unknown): Promise<string> {
   }
 }
 
+/** Redraw a photo on a canvas: works for any image format the browser can show, and shrinks big phone photos. */
+async function photoCanvas(file: File): Promise<HTMLCanvasElement> {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, 2000 / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(bitmap.width * scale);
+  canvas.height = Math.round(bitmap.height * scale);
+  const ctx = canvas.getContext("2d")!;
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
+  return canvas;
+}
+
 /** Text from a PDF: use the PDF's own text; if it's a scanned PDF, read page 1 as an image. */
 async function pdfText(file: File): Promise<string> {
   await loadScript(PDFJS);
@@ -104,7 +119,7 @@ export function ScanJaaropgaaf({ onUse }: { onUse: (r: ScanResult) => void }) {
     if (!file) return;
     setState({ kind: "reading" });
     try {
-      const text = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf") ? await pdfText(file) : await ocr(file);
+      const text = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf") ? await pdfText(file) : await ocr(await photoCanvas(file));
       const result = extractJaaropgaaf(text);
       setState(result.fiscalWage === null && result.taxWithheld === null ? { kind: "none" } : { kind: "found", result });
     } catch {
