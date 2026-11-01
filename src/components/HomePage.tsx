@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 import { Nav } from "./Nav";
 import { loadSaved } from "@/lib/storage";
-import { RULES } from "@/lib/tax/calculate";
+import { YEARS } from "@/lib/tax/calculate";
+import { GUIDES } from "@/lib/guides";
 
 const Arrow = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
@@ -27,7 +28,7 @@ export function HomePage() {
 
         <div className="row">
           <section className="tile hero">
-            <div className="pill">Tax year {RULES.year} · for expats and residents</div>
+            <div className="pill">Tax years {YEARS.slice().reverse().join(" and ")} · for expats and residents</div>
             <h1>
               Dutch taxes,
               <br />
@@ -69,6 +70,20 @@ export function HomePage() {
           <FeatureTile title="Savings (box 3)" text="Bank, shares and crypto on 1 January, explained." icon="card" accent />
           <FeatureTile title="Your filing guide" text="Every number, and the section it goes in." icon="check" />
         </div>
+
+        <section className="tile guides-strip" aria-labelledby="guides-title">
+          <div className="guides-strip-head">
+            <h2 id="guides-title">Guides</h2>
+            <Link href="/guides/">All guides →</Link>
+          </div>
+          <ul className="guides-links">
+            {GUIDES.map((g) => (
+              <li key={g.slug}>
+                <Link href={`/guides/${g.slug}/`}>{g.title}</Link>
+              </li>
+            ))}
+          </ul>
+        </section>
 
         <p className="footnote">
           BelastingBuddy is a guide, not a tax advisor. You file your own return on Mijn Belastingdienst. Your answers stay in this

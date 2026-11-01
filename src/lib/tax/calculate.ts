@@ -1,7 +1,16 @@
 import type { Answers, Estimate, PersonResult, TaxRules } from "./types";
 import rules2025 from "./rules/2025.json";
+import rules2026 from "./rules/2026.json";
 
-export const RULES: TaxRules = rules2025 as TaxRules;
+/** Tax rules per year. Next year: add rules/2027.json and one line here. */
+export const RULES_BY_YEAR: Record<number, TaxRules> = {
+  2025: rules2025 as TaxRules,
+  2026: rules2026 as TaxRules,
+};
+export const YEARS = Object.keys(RULES_BY_YEAR).map(Number).sort((a, b) => b - a);
+export const RULES: TaxRules = RULES_BY_YEAR[2025];
+export const yearOf = (a: Answers) => (a.taxYear && RULES_BY_YEAR[a.taxYear] ? a.taxYear : 2025);
+export const rulesFor = (a: Answers) => RULES_BY_YEAR[yearOf(a)];
 
 const n = (v: number | undefined) => (typeof v === "number" && isFinite(v) ? Math.max(0, v) : 0);
 const round = (v: number) => Math.round(v);
@@ -166,8 +175,9 @@ export function personTax(p: PersonInput, rules: TaxRules): PersonResult {
 
 // ---------- The full estimate ----------
 
-export function calculate(answers: Answers, rules: TaxRules = RULES): Estimate {
+export function calculate(answers: Answers, rules: TaxRules = rulesFor(answers)): Estimate {
   const notes: string[] = [];
+  const year = rules.year;
   let available = true;
   let rough = false;
   const hasPartner = answers.partner === "yes";
@@ -228,9 +238,12 @@ export function calculate(answers: Answers, rules: TaxRules = RULES): Estimate {
   const people = hasPartner ? 2 : 1;
   let b3 = { base: 0, benefit: 0, tax: 0 };
   if (answers.residency === "moved_in") {
-    notes.push("You didn't live here on 1 January 2025, so box 3 usually doesn't apply this year.");
+    notes.push(`You didn't live here on 1 January ${year}, so box 3 usually doesn't apply this year.`);
   } else if (answers.residency !== "non_resident") {
     b3 = box3(answers, rules, people);
+  }
+  if (year === 2026 && b3.base > 0) {
+    notes.push("The 2026 savings rate (1.28%) is still provisional. The final rate comes in early 2027.");
   }
   if (answers.ruling2023 === "yes" && b3.base > 0) {
     notes.push("You may be able to choose partial non-resident status. Then savings abroad are not taxed. We didn't include this.");
@@ -257,7 +270,7 @@ export function calculate(answers: Answers, rules: TaxRules = RULES): Estimate {
     answers.pensionAge === "yes" ? 1 : answers.pensionAge === "during" ? (12 - Math.min(12, Math.max(1, answers.turned67Month ?? 12))) / 12 : 0;
   if (answers.pensionAge === "during") {
     rough = true;
-    notes.push("You turned 67 in 2025. We split the year into months before and after. The real amount can differ a little.");
+    notes.push(`You turned 67 in ${year}. We split the year into months before and after. The real amount can differ a little.`);
   }
 
   const provisional = (who: "you" | "partner") => {

@@ -144,3 +144,28 @@ test("C form: qualifying non-resident gets a number, others don't", () => {
   assert.equal(calculate({ ...employee, residency: "non_resident", qualifyingNonResident: "yes" }).available, true);
   assert.equal(calculate({ ...employee, residency: "non_resident", qualifyingNonResident: "no" }).available, false);
 });
+
+// ---------- 2026 ----------
+import { RULES_BY_YEAR, rulesFor } from "./calculate";
+const R26 = RULES_BY_YEAR[2026];
+
+test("2026: brackets and credits line up", () => {
+  close(bracketTax(38883, R26), 38883 * 0.3575);
+  close(generalTaxCredit(29736, R26), 3115);
+  close(generalTaxCredit(78426, R26), 0, 2);
+  close(labourTaxCredit(11965, R26), 996, 1);
+  close(labourTaxCredit(25845, R26), 5300, 1);
+  close(labourTaxCredit(45592, R26), 5685, 1);
+  close(labourTaxCredit(132920, R26), 0, 2);
+  close(labourTaxCredit(25845, R26, true), 2647, 1);
+  close(labourTaxCredit(45592, R26, true), 2840, 1);
+});
+
+test("2026: the chosen year picks the rules", () => {
+  assert.equal(rulesFor({ taxYear: 2026 }).year, 2026);
+  assert.equal(rulesFor({}).year, 2025);
+  const e25 = calculate({ ...employee, taxYear: 2025 });
+  const e26 = calculate({ ...employee, taxYear: 2026 });
+  assert.notEqual(e25.you.totalTax, e26.you.totalTax);
+  assert.ok(e26.notes.length >= 0);
+});

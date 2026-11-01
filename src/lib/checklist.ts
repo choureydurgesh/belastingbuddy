@@ -1,4 +1,5 @@
 import type { Answers } from "./tax/types";
+import { yearOf } from "./tax/calculate";
 
 export interface ChecklistItem {
   id: string;
@@ -8,6 +9,7 @@ export interface ChecklistItem {
 
 /** F7: the papers this user needs, based on their answers. */
 export function buildChecklist(a: Answers): ChecklistItem[] {
+  const y = yearOf(a);
   const items: ChecklistItem[] = [
     { id: "digid", title: "Your DigiD login (app)", where: "digid.nl – you need it to log in to Mijn Belastingdienst." },
   ];
@@ -51,16 +53,16 @@ export function buildChecklist(a: Answers): ChecklistItem[] {
     items.push({ id: "mortgage", title: "Mortgage yearly statement (jaaroverzicht)", where: "From your bank or mortgage provider." });
   }
   if (a.studentLoan === "yes") {
-    items.push({ id: "duo", title: "Student loan balance on 1 January 2025", where: "Mijn DUO, or your lender's yearly overview." });
+    items.push({ id: "duo", title: `Student loan balance on 1 January ${y}`, where: "Mijn DUO, or your lender's yearly overview." });
   }
   if ((a.otherDebts ?? 0) > 0) {
     items.push({ id: "debts", title: "Statements for your other debts", where: "From your lender or credit card provider." });
   }
   if ((a.savings ?? 0) > 0) {
-    items.push({ id: "bank", title: "Bank balances on 1 January 2025", where: "Yearly statements from every bank, also abroad." });
+    items.push({ id: "bank", title: `Bank balances on 1 January ${y}`, where: "Yearly statements from every bank, also abroad." });
   }
   if ((a.investments ?? 0) > 0) {
-    items.push({ id: "invest", title: "Investment values on 1 January 2025", where: "Yearly statement from your broker or crypto exchange." });
+    items.push({ id: "invest", title: `Investment values on 1 January ${y}`, where: "Yearly statement from your broker or crypto exchange." });
   }
   if ((a.otherProperty ?? 0) > 0) {
     items.push({ id: "property", title: "Value of your other property", where: "WOZ letter, or a valuation for property abroad." });

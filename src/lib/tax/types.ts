@@ -5,6 +5,7 @@ export type YesNo = "yes" | "no" | "unsure";
 
 export interface Answers {
   // Start check
+  taxYear?: number;
   residency?: Residency;
   moveMonth?: number; // 1–12
   qualifyingNonResident?: YesNo; // C form only

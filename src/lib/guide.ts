@@ -1,4 +1,5 @@
 import type { Answers, Estimate } from "./tax/types";
+import { yearOf } from "./tax/calculate";
 import { formatEuro } from "./questions";
 
 export interface GuideStep {
@@ -10,11 +11,12 @@ export interface GuideStep {
 
 /** F9: what to check or type in Mijn Belastingdienst, in order. */
 export function buildGuide(a: Answers, e: Estimate): GuideStep[] {
+  const y = yearOf(a);
   const steps: GuideStep[] = [];
 
   steps.push({
-    title: "Log in and open your 2025 return",
-    dutch: "Aangifte inkomstenbelasting 2025",
+    title: `Log in and open your ${y} return`,
+    dutch: `Aangifte inkomstenbelasting ${y}`,
     lines: [
       { label: "Go to Mijn Belastingdienst and log in with DigiD." },
       {
@@ -23,7 +25,7 @@ export function buildGuide(a: Answers, e: Estimate): GuideStep[] {
             ? "Choose the M form (migration year)."
             : a.residency === "non_resident"
               ? "Choose the return for non-residents (C form)."
-              : "Choose the normal 2025 return.",
+              : `Choose the normal ${y} return.`,
       },
       ...(a.partner === "yes" ? [{ label: "Choose to file together with your fiscal partner. It's usually easier." }] : []),
     ],

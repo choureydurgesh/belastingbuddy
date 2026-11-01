@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://belastingbuddy.com"),
   title: "BelastingBuddy – Dutch taxes in plain English",
   description: "A simple guide for expats and residents to the Dutch income tax return.",
 };

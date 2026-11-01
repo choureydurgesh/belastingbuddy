@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Answers, Estimate, PersonResult } from "@/lib/tax/types";
-import { RULES } from "@/lib/tax/calculate";
+import { rulesFor } from "@/lib/tax/calculate";
 import { formatEuro } from "@/lib/questions";
 import { buildChecklist } from "@/lib/checklist";
 import { buildGuide } from "@/lib/guide";
@@ -26,6 +26,7 @@ export function Results({
   onEdit: () => void;
   onDelete: () => void;
 }) {
+  const RULES = rulesFor(answers);
   const checklist = buildChecklist(answers);
   const guide = buildGuide(answers, estimate);
   const [ticked, setTicked] = useState<Record<string, boolean>>({});

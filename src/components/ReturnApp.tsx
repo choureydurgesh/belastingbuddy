@@ -14,6 +14,7 @@ import {
   formatEuro,
   nextQuestion,
   visibleQuestions,
+  withYear,
   type Question,
 } from "@/lib/questions";
 import { deleteSaved, loadSaved, saveAnswers } from "@/lib/storage";
@@ -105,7 +106,7 @@ export function ReturnApp() {
 
             <ChatLog history={history} answers={answers} onChange={setEditingId} current={current} />
 
-            {current && <AnswerInput key={current.id} question={current} value={answers[current.id]} onAnswer={answer} />}
+            {current && <AnswerInput key={current.id} question={current} value={answers[current.id]} onAnswer={answer} answers={answers} />}
           </section>
 
           <aside className="stack side">
@@ -159,15 +160,15 @@ function ChatLog({
     <div className="chat-log" ref={logRef}>
       {history.length === 0 && (
         <div className="bubble bot">
-          Hi! I'll ask you a few simple questions about 2025. Your answers stay in this browser. Let's start.
+          Hi! I'll ask you a few simple questions about your tax return. Your answers stay in this browser. Let's start.
         </div>
       )}
       {history.map((q) => (
         <div key={q.id} className="pair">
-          <div className="bubble bot">{q.text}</div>
+          <div className="bubble bot">{withYear(q.text, answers)}</div>
           <div className="bubble user">
-            {answerLabel(q, answers[q.id])}
-            <button className="change" onClick={() => onChange(q.id)} aria-label={`Change answer: ${q.text}`}>
+            {withYear(answerLabel(q, answers[q.id]), answers)}
+            <button className="change" onClick={() => onChange(q.id)} aria-label={`Change answer: ${withYear(q.text, answers)}`}>
               Change
             </button>
           </div>
@@ -177,8 +178,8 @@ function ChatLog({
     {current && (
       <div className="bubble bot current" aria-live="polite">
         <div className="q-section">{SECTIONS.find((s) => s.id === current.section)?.title}</div>
-        <div className="q-text">{current.text}</div>
-        {current.help && <div className="q-help">{current.help}</div>}
+        <div className="q-text">{withYear(current.text, answers)}</div>
+        {current.help && <div className="q-help">{withYear(current.help, answers)}</div>}
       </div>
     )}
     </>
@@ -189,10 +190,12 @@ function AnswerInput({
   question,
   value,
   onAnswer,
+  answers,
 }: {
   question: Question;
   value: unknown;
   onAnswer: (q: Question, v: string | number) => void;
+  answers: Answers;
 }) {
   const [text, setText] = useState(value !== undefined ? String(value) : "");
   const [error, setError] = useState("");
@@ -206,7 +209,7 @@ function AnswerInput({
             className={"chip " + (value === o.value ? "chip-accent" : "chip-outline")}
             onClick={() => onAnswer(question, o.value)}
           >
-            {o.label}
+            {withYear(o.label, answers)}
           </button>
         ))}
       </div>
@@ -226,7 +229,7 @@ function AnswerInput({
   return (
     <form className="answer input-row" onSubmit={submit} noValidate>
       <label htmlFor="answer-input" className="sr-only">
-        {question.text}
+        {withYear(question.text, answers)}
       </label>
       {isMoney && <span className="prefix" aria-hidden="true">€</span>}
       <input

@@ -17,7 +17,7 @@ export function Nav() {
     <nav className="nav tile" aria-label="Main">
       <Logo />
       <div className="nav-links">
-        <Link href="/#how">How it works</Link>
+        <Link href="/guides/">Guides</Link>
         <Link href="/privacy/">Privacy</Link>
         <Link href="/return/" className="btn btn-dark">
           Start free

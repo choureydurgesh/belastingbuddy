@@ -29,7 +29,8 @@ Other commands:
 | `src/app/` | The pages: home (`page.tsx`), `return/`, `privacy/`, and all styles (`globals.css`) |
 | `src/components/` | The building blocks: homepage, question chat, results |
 | `src/lib/questions.ts` | Every question we ask, in order (F1–F6) |
-| `src/lib/tax/rules/2025.json` | Tax rates for 2025. Add `2026.json` next year |
+| `src/lib/tax/rules/` | Tax rates per year (2025.json, 2026.json). Next year: add 2027.json and one line in calculate.ts |
+| `src/lib/guides.ts` | The help articles (F15). Add a guide by adding an entry |
 | `src/lib/tax/calculate.ts` | The refund estimate (F8) |
 | `src/lib/checklist.ts` | The document checklist (F7) |
 | `src/lib/guide.ts` | The filing guide (F9) |
