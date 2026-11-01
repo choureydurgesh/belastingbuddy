@@ -188,6 +188,11 @@ h2 { font-size: 26px; font-weight: 800; }
 .scan-result { display: flex; flex-direction: column; gap: 10px; background: var(--bg); border-radius: 16px; padding: 16px; }
 .scan-result .btn { align-self: flex-start; }
 
+/* ---------- Reminders ---------- */
+.reminder { display: flex; flex-direction: column; gap: 10px; }
+.reminder-form { display: flex; flex-direction: column; gap: 10px; }
+.reminder .input-row input { min-height: 48px; font-size: 16px; }
+
 /* ---------- Feedback and language ---------- */
 .lang-switch { min-height: 44px; min-width: 44px; border: 2px solid var(--line); background: #fff; border-radius: 12px; font: inherit; font-weight: 700; cursor: pointer; }
 .lang-switch:hover { border-color: var(--ink); }

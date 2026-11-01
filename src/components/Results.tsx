@@ -8,6 +8,7 @@ import { buildChecklist } from "@/lib/checklist";
 import { buildGuide } from "@/lib/guide";
 import { DeleteButton } from "./DeleteButton";
 import { useLang } from "@/lib/i18n";
+import { ReminderSignup } from "./ReminderSignup";
 
 const FORM_NAME: Record<string, string> = {
   resident: "P form (normal return)",
@@ -92,6 +93,7 @@ export function Results({
               )}
             </p>
           </div>
+          <ReminderSignup year={RULES.year} />
           {estimate.available && (
             <div className="tile">
               <div className="eyebrow">{t("How we got there")}</div>

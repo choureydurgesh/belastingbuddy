@@ -1,0 +1,25 @@
+# F18: sends the reminder emails twice a year.
+# Needs a repository secret CRON_SECRET (same value as in Cloudflare Pages).
+name: Deadline reminders
+on:
+  schedule:
+    - cron: "0 8 1 3 *"   # 1 March, 09:00 Amsterdam: filing opens
+    - cron: "0 8 17 4 *"  # 17 April, 10:00 Amsterdam: two weeks before 1 May
+  workflow_dispatch:
+    inputs:
+      kind:
+        description: "open or deadline"
+        required: true
+        default: "open"
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send reminders
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          KIND: ${{ github.event.inputs.kind || (github.event.schedule == '0 8 1 3 *' && 'open' || 'deadline') }}
+        run: |
+          curl -sS --fail-with-body -X POST https://belastingbuddy.com/api/reminders/send \
+            -H "content-type: application/json" -H "x-cron-secret: $CRON_SECRET" \
+            -d "{\"kind\":\"$KIND\"}"
