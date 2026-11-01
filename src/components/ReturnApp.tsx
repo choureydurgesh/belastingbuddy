@@ -35,8 +35,13 @@ export function ReturnApp() {
   useEffect(() => {
     const saved = loadSaved();
     if (saved) {
-      setAnswers(saved.answers);
-      if (Object.keys(saved.answers).length > 0 && !nextQuestion(saved.answers)) setView("results");
+      // Answers saved before the jaaropgaaf step existed: don't send people back to it.
+      const a: Answers =
+        Object.keys(saved.answers).length > 0 && saved.answers.jaaropgaaf === undefined
+          ? { ...saved.answers, jaaropgaaf: "skipped" }
+          : saved.answers;
+      setAnswers(a);
+      if (Object.keys(a).length > 0 && !nextQuestion(a)) setView("results");
     }
     setLoaded(true);
   }, []);
