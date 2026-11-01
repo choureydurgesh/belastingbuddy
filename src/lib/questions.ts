@@ -22,7 +22,7 @@ export interface Question {
   section: SectionId;
   text: string;
   help?: string;
-  kind: "choice" | "money" | "number";
+  kind: "choice" | "money" | "number" | "upload";
   options?: Option[];
   min?: number;
   max?: number;
@@ -43,6 +43,14 @@ const livedHereJan1 = (a: Answers) => a.residency === "resident" || a.residency 
 
 export const QUESTIONS: Question[] = [
   // ---------- F1 Start check ----------
+  // First: the jaaropgaaf. What we read from it answers several questions below, which are then skipped.
+  {
+    id: "jaaropgaaf",
+    section: "start",
+    kind: "upload",
+    text: "Let's start with your jaaropgaaf",
+    help: "That's the yearly statement from your employer, UWV or pension fund (PDF or photo). We fill in what we can, and you check it. No jaaropgaaf? Skip this step.",
+  },
   {
     id: "taxYear",
     section: "start",
@@ -554,6 +562,7 @@ export function nextQuestion(a: Answers): Question | null {
 /** Text for showing an answer back to the user. */
 export function answerLabel(q: Question, value: unknown): string {
   if (q.kind === "money") return formatEuro(Number(value));
+  if (q.kind === "upload") return value === "scanned" ? "Uploaded" : "Skipped";
   const opt = q.options?.find((o) => o.value === value);
   return opt ? opt.label : String(value);
 }

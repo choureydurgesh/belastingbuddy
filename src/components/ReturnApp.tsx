@@ -21,6 +21,7 @@ import { deleteSaved, loadSaved, saveAnswers } from "@/lib/storage";
 import { parseMoney } from "@/lib/money";
 import { useLang } from "@/lib/i18n";
 import { ScanJaaropgaaf } from "./ScanJaaropgaaf";
+import { JaaropgaafStep } from "./JaaropgaafStep";
 import type { ScanResult } from "@/lib/scan";
 
 export function ReturnApp() {
@@ -46,6 +47,15 @@ export function ReturnApp() {
 
   function answer(q: Question, value: string | number) {
     const updated = cleanAnswers({ ...answers, [q.id]: value });
+    setAnswers(updated);
+    saveAnswers(updated);
+    setEditingId(null);
+    if (!nextQuestion(updated)) setView("results");
+  }
+
+  // First step: answers read from the uploaded jaaropgaven. Questions they answer are skipped.
+  function applyFound(found: Record<string, unknown>) {
+    const updated = cleanAnswers({ ...answers, ...found } as Answers);
     setAnswers(updated);
     saveAnswers(updated);
     setEditingId(null);
@@ -123,8 +133,11 @@ export function ReturnApp() {
 
             <ChatLog history={history} answers={answers} onChange={setEditingId} current={current} />
 
-            {current && <AnswerInput key={current.id} question={current} value={answers[current.id]} onAnswer={answer} answers={answers} />}
-            {current?.id === "fiscalWage" && <ScanJaaropgaaf onUse={applyScan} />}
+            {current && current.kind === "upload" && <JaaropgaafStep key={current.id} onDone={applyFound} />}
+            {current && current.kind !== "upload" && (
+              <AnswerInput key={current.id} question={current} value={answers[current.id]} onAnswer={answer} answers={answers} />
+            )}
+            {current?.id === "fiscalWage" && answers.jaaropgaaf !== "scanned" && <ScanJaaropgaaf onUse={applyScan} />}
           </section>
 
           <aside className="stack side">

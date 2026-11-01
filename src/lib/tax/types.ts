@@ -5,6 +5,7 @@ export type YesNo = "yes" | "no" | "unsure";
 
 export interface Answers {
   // Start check
+  jaaropgaaf?: "scanned" | "skipped";
   taxYear?: number;
   residency?: Residency;
   moveMonth?: number; // 1–12

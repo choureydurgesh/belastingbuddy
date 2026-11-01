@@ -515,4 +515,22 @@ export const NL: Record<string, string> = {
   "Check your inbox and click the link to confirm.": "Kijk in je inbox en klik op de link om te bevestigen.",
   "Reminders aren't available yet. Please check back soon.": "Herinneringen zijn er nog niet. Kijk binnenkort nog eens.",
   "Please enter a valid email address.": "Vul een geldig e-mailadres in.",
+
+  // ---------- Jaaropgaaf first step ----------
+  "Let's start with your jaaropgaaf": "We beginnen met je jaaropgaaf",
+  "That's the yearly statement from your employer, UWV or pension fund (PDF or photo). We fill in what we can, and you check it. No jaaropgaaf? Skip this step.":
+    "Dat is het jaaroverzicht van je werkgever, UWV of pensioenfonds (pdf of foto). Wij vullen in wat we kunnen, jij controleert het. Geen jaaropgaaf? Sla deze stap over.",
+  "Upload jaaropgaaf (PDF or photo)": "Jaaropgaaf uploaden (pdf of foto)",
+  "Add another jaaropgaaf": "Nog een jaaropgaaf toevoegen",
+  "Have more than one job, or a partner? Add each jaaropgaaf. They're read in your browser and never uploaded.":
+    "Meer dan één baan, of een partner? Voeg elke jaaropgaaf toe. Ze worden in je browser gelezen en nooit geüpload.",
+  "Remove": "Verwijderen",
+  "We couldn't read this one. Type the numbers, or remove it.": "Deze konden we niet lezen. Typ de bedragen, of verwijder hem.",
+  "Whose jaaropgaaf is this?": "Van wie is deze jaaropgaaf?",
+  "Mine": "Van mij",
+  "My partner's": "Van mijn partner",
+  "We see the 30% ruling on this jaaropgaaf.": "We zien de 30%-regeling op deze jaaropgaaf.",
+  "Skip, I'll type the numbers": "Overslaan, ik typ de bedragen zelf",
+  "Uploaded": "Geüpload",
+  "Skipped": "Overgeslagen",
 };

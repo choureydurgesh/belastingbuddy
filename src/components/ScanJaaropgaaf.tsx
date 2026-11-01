@@ -107,6 +107,12 @@ async function pdfText(file: File): Promise<string> {
   return ocr(canvas);
 }
 
+/** Read a PDF or photo and return its text. Runs fully in the browser. */
+export async function readDocument(file: File): Promise<string> {
+  const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+  return isPdf ? pdfText(file) : ocr(await photoCanvas(file));
+}
+
 type State = { kind: "idle" } | { kind: "reading" } | { kind: "found"; result: ScanResult } | { kind: "none" } | { kind: "error" };
 
 export function ScanJaaropgaaf({ onUse }: { onUse: (r: ScanResult) => void }) {
@@ -119,7 +125,7 @@ export function ScanJaaropgaaf({ onUse }: { onUse: (r: ScanResult) => void }) {
     if (!file) return;
     setState({ kind: "reading" });
     try {
-      const text = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf") ? await pdfText(file) : await ocr(await photoCanvas(file));
+      const text = await readDocument(file);
       const result = extractJaaropgaaf(text);
       setState(result.fiscalWage === null && result.taxWithheld === null ? { kind: "none" } : { kind: "found", result });
     } catch {
