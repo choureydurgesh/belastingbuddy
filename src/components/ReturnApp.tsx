@@ -20,6 +20,8 @@ import {
 import { deleteSaved, loadSaved, saveAnswers } from "@/lib/storage";
 import { parseMoney } from "@/lib/money";
 import { useLang } from "@/lib/i18n";
+import { ScanJaaropgaaf } from "./ScanJaaropgaaf";
+import type { ScanResult } from "@/lib/scan";
 
 export function ReturnApp() {
   const { t } = useLang();
@@ -44,6 +46,19 @@ export function ReturnApp() {
 
   function answer(q: Question, value: string | number) {
     const updated = cleanAnswers({ ...answers, [q.id]: value });
+    setAnswers(updated);
+    saveAnswers(updated);
+    setEditingId(null);
+    if (!nextQuestion(updated)) setView("results");
+  }
+
+  // F19: put scanned numbers in, then carry on with the next open question.
+  function applyScan(r: ScanResult) {
+    const updated = cleanAnswers({
+      ...answers,
+      ...(r.fiscalWage !== null ? { fiscalWage: r.fiscalWage } : {}),
+      ...(r.taxWithheld !== null ? { taxWithheld: r.taxWithheld } : {}),
+    });
     setAnswers(updated);
     saveAnswers(updated);
     setEditingId(null);
@@ -109,6 +124,7 @@ export function ReturnApp() {
             <ChatLog history={history} answers={answers} onChange={setEditingId} current={current} />
 
             {current && <AnswerInput key={current.id} question={current} value={answers[current.id]} onAnswer={answer} answers={answers} />}
+            {current?.id === "fiscalWage" && <ScanJaaropgaaf onUse={applyScan} />}
           </section>
 
           <aside className="stack side">
