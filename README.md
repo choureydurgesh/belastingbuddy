@@ -41,5 +41,6 @@ Other commands:
 - Answers are saved only in the user's browser. Nothing goes to a server.
 - The estimate covers employees, business owners, people 67+, fiscal partners (best split), income from abroad, and qualifying non-residents. M form, C form and abroad estimates are marked "rough".
 - Also covered: starter deduction, partial non-resident status (picked only when it saves money), extra healthcare deduction for low incomes and 67+.
-- Not included yet: business costs (enter profit after costs), investment deductions, non-qualifying non-residents.
+- Also covered: business turnover and costs, investment deduction (KIA), non-qualifying non-residents (credits by country and insurance), reading WOZ, mortgage, bank and broker statements.
+- Not included yet: 2027 rules (waiting for the final numbers), other business deductions (like the self-employed pension reserve).
 - Server: `functions/api/` (Cloudflare Pages Functions) with a D1 database in the EU (`schema.sql`). Only feedback and reminder emails are stored.

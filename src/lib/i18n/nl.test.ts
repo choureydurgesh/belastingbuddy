@@ -9,7 +9,7 @@ import { buildGuide } from "../guide";
 import type { Answers } from "../tax/types";
 
 // Texts that are already Dutch (names of sections in Mijn Belastingdienst) don't need a translation.
-const DUTCH = /^(Aangifte inkomstenbelasting|Loon, uitkeringen|Inkomsten uit|Winst uit|Resultaat uit|Eigen woning|Bankrekeningen|Aftrekposten|Verdelen met|Overzicht en|Feedback$|Privacy$|Live$|Deadline$)/;
+const DUTCH = /^(Aangifte inkomstenbelasting|Loon, uitkeringen|Inkomsten uit|Winst uit|Resultaat uit|Eigen woning|Bankrekeningen|Aftrekposten|Verdelen met|Bezittingen in|Overzicht en|Feedback$|Privacy$|Live$|Deadline$)/;
 const missing = (texts: string[]) => texts.filter((s) => s && !DUTCH.test(s) && translate(s, "nl") === s);
 
 const scenarios: Answers[] = [
@@ -17,6 +17,10 @@ const scenarios: Answers[] = [
   { taxYear: 2025, residency: "moved_in", moveMonth: 4, partner: "unsure", pensionAge: "no", hasJob: "yes", fiscalWage: 50000, taxWithheld: 15000, foreignIncome: "yes", foreignIncomeAmount: 3000, foreignTaxed: "no", sideIncome: "yes", sideType: "other", sideIncomeAmount: 2000, ownHome: "yes", homeChange: "sold", homeShare: 50, homeMonths: 3, wozValue: 300000, mortgageInterest: 5000, mortgageType: "interestOnlyNew", groundLease: "no", saleResult: "loss" },
   { taxYear: 2025, residency: "non_resident", qualifyingNonResident: "no", ownHome: "no" },
   { taxYear: 2025, residency: "non_resident", qualifyingNonResident: "yes", hasJob: "yes", fiscalWage: 40000, taxWithheld: 12000 },
+  { taxYear: 2026, residency: "resident", hasJob: "no", sideIncome: "yes", sideType: "business", sideHours: "yes", sideStarter: "no", businessRevenue: 60000, businessCosts: 8000, businessInvest: "yes", businessInvestAmount: 5000, ownHome: "no" },
+  { taxYear: 2025, residency: "resident", hasJob: "yes", fiscalWage: 30000, taxWithheld: 5000, sideIncome: "yes", sideType: "business", sideHours: "no", businessRevenue: 5000, businessCosts: 9000, businessInvest: "yes", businessInvestAmount: 1000, ownHome: "no" },
+  { taxYear: 2026, residency: "non_resident", qualifyingNonResident: "unsure", livingCountry: "eu", dutchInsured: "unsure", hasJob: "yes", fiscalWage: 40000, taxWithheld: 9000, dutchProperty: 250000, alimony: "no" },
+  { taxYear: 2026, residency: "non_resident", qualifyingNonResident: "no", livingCountry: "other", dutchInsured: "no", hasJob: "yes", fiscalWage: 40000, taxWithheld: 9000, dutchProperty: 0 },
   { taxYear: 2026, residency: "moved_out", pensionAge: "yes", ownHome: "yes", homeChange: "bought", homeShare: 100, homeMonths: 12, wozValue: 300000, mortgageInterest: 0, purchaseCosts: 2000, healthcare: "yes", healthcareAmount: 1000, ruling30: "yes", ruling2023: "no" },
 ];
 
@@ -44,6 +48,15 @@ test("every result note, checklist item and guide line has Dutch", () => {
     }
   }
   assert.deepEqual([...new Set(missing(texts))], []);
+});
+
+test("document reader texts have Dutch", () => {
+  const texts = [
+    "Read it from your WOZ letter", "Read it from your mortgage statement", "Read it from your bank statements", "Read it from your broker statements",
+    "PDF or photo. Add one for each account or loan. Read in your browser, never uploaded.", "PDF or photo. Read in your browser, never uploaded.",
+    "Reading your document…", "Total", "Check the number before you use it.", "Use € 412.000", "We couldn't find the number. Please type it in.",
+  ];
+  assert.deepEqual(missing(texts), []);
 });
 
 test("placeholders carry values into Dutch", () => {

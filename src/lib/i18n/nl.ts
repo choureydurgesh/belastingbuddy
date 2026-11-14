@@ -533,4 +533,75 @@ export const NL: Record<string, string> = {
   "Skip, I'll type the numbers": "Overslaan, ik typ de bedragen zelf",
   "Uploaded": "Geüpload",
   "Skipped": "Overgeslagen",
+
+  // ---------- Phase 3: business costs, investment deduction (F21, F22) ----------
+  "What was your business turnover in {year}?": "Wat was de omzet van je bedrijf in {year}?",
+  "All you invoiced in {year}, without VAT (btw). Your bookkeeping or invoices show it.":
+    "Alles wat je in {year} hebt gefactureerd, zonder btw. Je boekhouding of facturen laten het zien.",
+  "What were your business costs in {year}?": "Wat waren je zakelijke kosten in {year}?",
+  "For example: software, phone and internet (business part), accountant, insurance, training, travel (€0.23 per km by own car), and the yearly depreciation of things like a laptop. Without VAT if you charge VAT. Enter 0 if none.":
+    "Bijvoorbeeld: software, telefoon en internet (zakelijk deel), boekhouder, verzekeringen, opleiding, reiskosten (€ 0,23 per km met je eigen auto) en de jaarlijkse afschrijving van bijvoorbeeld een laptop. Zonder btw als je btw rekent. Vul 0 in als je geen kosten had.",
+  "Did you buy business items of €450 or more each in {year}?": "Heb je in {year} zakelijke spullen van € 450 of meer per stuk gekocht?",
+  "For example a laptop, machine, tools or a van. Then you may get an extra deduction (kleinschaligheidsinvesteringsaftrek, KIA). Cars for personal use and land don't count.":
+    "Bijvoorbeeld een laptop, machine, gereedschap of bestelbus. Dan krijg je misschien extra aftrek (kleinschaligheidsinvesteringsaftrek, KIA). Personenauto's en grond tellen niet mee.",
+  "What did those items cost in total?": "Wat kostten die spullen samen?",
+  "Add up only items of €450 or more each, without VAT. The deduction starts when the total is €2,901 or more.":
+    "Tel alleen spullen van € 450 of meer per stuk op, zonder btw. De aftrek begint bij een totaal van € 2.901 of meer.",
+  "Use your records. Enter 0 if you made a loss.": "Gebruik je administratie. Vul 0 in als je verlies maakte.",
+  "Investment deduction (KIA): €{n} off your profit.": "Investeringsaftrek (KIA): €{n} van je winst af.",
+  "Your investments were too small or too large for the investment deduction (KIA). It applies from €2,901 to €392,230 in total.":
+    "Je investeringen waren te klein of te groot voor de investeringsaftrek (KIA). Die geldt voor een totaal van € 2.901 tot € 392.230.",
+  "Your business made a loss. It lowers your other box 1 income. A loss that's left over can be used in other years.":
+    "Je bedrijf maakte verlies. Dat verlaagt je andere inkomen in box 1. Verlies dat overblijft, kun je in andere jaren gebruiken.",
+  "Turnover, without VAT (omzet)": "Omzet, zonder btw",
+  "Costs (kosten), including depreciation (afschrijvingen)": "Kosten, inclusief afschrijvingen",
+  "Investments of €450+ per item (investeringen)": "Investeringen van € 450+ per stuk",
+  "Investment deduction (kleinschaligheidsinvesteringsaftrek)": "Kleinschaligheidsinvesteringsaftrek",
+  "Most people with a business use a simple bookkeeping tool or accountant for this part. Mijn Belastingdienst asks for a short balance sheet too.":
+    "De meeste ondernemers gebruiken voor dit deel een boekhoudprogramma of boekhouder. Mijn Belastingdienst vraagt ook om een korte balans.",
+  "Invoices for business items you bought": "Facturen van zakelijke spullen die je kocht",
+  "Needed for the investment deduction (KIA). Keep them for 7 years.": "Nodig voor de investeringsaftrek (KIA). Bewaar ze 7 jaar.",
+
+  // ---------- Phase 3: non-qualifying non-residents (F23) ----------
+  "Which country did you live in?": "In welk land woonde je?",
+  "This decides which tax credits you get as a non-resident.": "Dit bepaalt welke heffingskortingen je krijgt als buitenlands belastingplichtige.",
+  "Belgium": "België",
+  "Another EU or EEA country, Switzerland or the Caribbean Netherlands": "Een ander EU- of EER-land, Zwitserland of Caribisch Nederland",
+  "Somewhere else": "Ergens anders",
+  "Were you insured for Dutch social insurance (AOW, Wlz) in {year}?": "Was je in {year} verzekerd voor de Nederlandse volksverzekeringen (AOW, Wlz)?",
+  "Usually yes if you worked in the Netherlands. No if you have an A1 statement saying you're insured in another country.":
+    "Meestal ja als je in Nederland werkte. Nee als je een A1-verklaring hebt dat je in een ander land verzekerd bent.",
+  "Did you own property in the Netherlands on 1 January {year}? Enter its value.":
+    "Had je op 1 januari {year} onroerend goed in Nederland? Vul de waarde in.",
+  "As a non-resident, only Dutch property counts in box 3: for example a home here, or one you rent out. Use the WOZ value. Bank savings and shares don't count. Enter 0 if none.":
+    "Als buitenlands belastingplichtige telt in box 3 alleen Nederlands onroerend goed: bijvoorbeeld een woning hier, of een die je verhuurt. Gebruik de WOZ-waarde. Spaargeld en aandelen tellen niet mee. Vul 0 in als je niets had.",
+  "C form: we used your Dutch income only. In box 3 only property in the Netherlands counts.":
+    "C-biljet: we gebruikten alleen je Nederlandse inkomen. In box 3 telt alleen onroerend goed in Nederland.",
+  "You're not a qualifying non-resident, so you pay tax on your Dutch income without most deductions. Which tax credits you get depends on where you live.":
+    "Je bent geen kwalificerend buitenlands belastingplichtige. Je betaalt belasting over je Nederlandse inkomen, zonder de meeste aftrekposten. Welke heffingskortingen je krijgt, hangt af van waar je woont.",
+  "You weren't sure if you qualify, so we used the stricter rules. If you do qualify, you likely get more back.":
+    "Je wist niet zeker of je kwalificeert, dus we gebruikten de strengere regels. Kwalificeer je wel, dan krijg je waarschijnlijk meer terug.",
+  "You're not insured in the Netherlands, so you pay no Dutch social insurance premiums and get no premium part of the tax credits.":
+    "Je bent niet in Nederland verzekerd. Je betaalt dus geen Nederlandse premies volksverzekeringen en krijgt geen premiedeel van de heffingskortingen.",
+  "We assumed you're insured in the Netherlands, which is normal if you work here. If you have an A1 statement from another country, choose 'No'.":
+    "We gingen ervan uit dat je in Nederland verzekerd bent, wat normaal is als je hier werkt. Heb je een A1-verklaring uit een ander land? Kies dan 'Nee'.",
+  "Your A1 statement": "Je A1-verklaring",
+  "From the social security office in the country where you're insured.": "Van de sociale-zekerheidsinstantie in het land waar je verzekerd bent.",
+  "Fill in your Dutch property": "Vul je Nederlandse onroerend goed in",
+  "Value of property in the Netherlands on 1 January (WOZ)": "Waarde van onroerend goed in Nederland op 1 januari (WOZ)",
+  "Savings and shares abroad don't count for you here.": "Spaargeld en aandelen in het buitenland tellen voor jou hier niet mee.",
+
+  // ---------- Phase 3: read other documents (F24) ----------
+  "Read it from your WOZ letter": "Lees het uit je WOZ-beschikking",
+  "Read it from your mortgage statement": "Lees het uit je jaaroverzicht hypotheek",
+  "Read it from your bank statements": "Lees het uit je jaaroverzichten van de bank",
+  "Read it from your broker statements": "Lees het uit je jaaroverzichten van je broker",
+  "PDF or photo. Add one for each account or loan. Read in your browser, never uploaded.":
+    "Pdf of foto. Voeg er een toe per rekening of lening. Wordt in je browser gelezen, nooit geüpload.",
+  "PDF or photo. Read in your browser, never uploaded.": "Pdf of foto. Wordt in je browser gelezen, nooit geüpload.",
+  "Reading your document…": "We lezen je document…",
+  "Total": "Totaal",
+  "Check the number before you use it.": "Controleer het bedrag voordat je het gebruikt.",
+  "Use {amount}": "Gebruik {amount}",
+  "We couldn't find the number. Please type it in.": "We konden het bedrag niet vinden. Typ het zelf in.",
 };

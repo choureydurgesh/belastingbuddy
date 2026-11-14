@@ -140,9 +140,12 @@ test("partners: the best split is at least as good as giving everything to one p
   assert.equal(e.split!.shared, 100);
 });
 
-test("C form: qualifying non-resident gets a number, others don't", () => {
-  assert.equal(calculate({ ...employee, residency: "non_resident", qualifyingNonResident: "yes" }).available, true);
-  assert.equal(calculate({ ...employee, residency: "non_resident", qualifyingNonResident: "no" }).available, false);
+test("C form: every non-resident gets a number; non-qualifying gets less back", () => {
+  const q = calculate({ ...employee, residency: "non_resident", qualifyingNonResident: "yes" });
+  const nq = calculate({ ...employee, residency: "non_resident", qualifyingNonResident: "no", livingCountry: "eu", dutchInsured: "yes" });
+  assert.equal(q.available, true);
+  assert.equal(nq.available, true);
+  assert.ok(nq.result < q.result);
 });
 
 // ---------- 2026 ----------
@@ -225,4 +228,52 @@ test("partial non-resident status is used when it saves money", () => {
   const noRuling = calculate({ ...a, ruling2023: "no" });
   assert.equal(noRuling.partialNonResidentSaving, undefined);
   assert.ok(noRuling.you.box3Tax > 0);
+});
+
+// ---------- Phase 3 ----------
+import { investmentDeduction } from "./calculate";
+
+test("investment deduction (KIA) bands", () => {
+  const r = RULES_BY_YEAR[2026];
+  assert.equal(investmentDeduction(2000, r), 0);
+  close(investmentDeduction(5000, r), 1400);
+  assert.equal(investmentDeduction(100000, r), 19769);
+  close(investmentDeduction(200000, r), 19769 - 0.0756 * (200000 - 130744));
+  assert.equal(investmentDeduction(400000, r), 0);
+});
+
+test("business: turnover minus costs minus KIA, then entrepreneur deductions", () => {
+  const r = RULES_BY_YEAR[2026];
+  const s = sideIncome(
+    { sideIncome: "yes", sideType: "business", sideHours: "yes", sideStarter: "no", businessRevenue: 60000, businessCosts: 10000, businessInvest: "yes", businessInvestAmount: 5000 },
+    r,
+  );
+  assert.equal(s.profit, 50000);
+  close(s.kia, 1400);
+  close(s.taxable, (50000 - 1400 - r.business.selfEmployedDeduction) * (1 - r.business.smeExemptionRate));
+  // A loss lowers box 1 and has no Zvw.
+  const loss = sideIncome({ sideIncome: "yes", sideType: "business", sideHours: "no", businessRevenue: 2000, businessCosts: 6000 }, r);
+  close(loss.taxable, -4000 * (1 - r.business.smeExemptionRate));
+  assert.equal(loss.zvw, 0);
+});
+
+test("non-qualifying non-resident in the EU, insured here: labour credit and premium part of general credit", () => {
+  const r = RULES_BY_YEAR[2026];
+  const a: Answers = { taxYear: 2026, residency: "non_resident", qualifyingNonResident: "no", livingCountry: "eu", dutchInsured: "yes", partner: "no", pensionAge: "no", hasJob: "yes", fiscalWage: 40000, taxWithheld: 9000 };
+  const e = calculate(a);
+  assert.equal(e.available, true);
+  close(e.you.generalCredit, generalTaxCredit(40000, r) * (0.2765 / 0.3575));
+  close(e.you.labourCredit, labourTaxCredit(40000, r));
+  close(e.you.box1Tax, bracketTax(40000, r));
+});
+
+test("non-qualifying non-resident elsewhere, not insured: no premiums, no credits", () => {
+  const r = RULES_BY_YEAR[2026];
+  const a: Answers = { taxYear: 2026, residency: "non_resident", qualifyingNonResident: "no", livingCountry: "other", dutchInsured: "no", partner: "no", pensionAge: "no", hasJob: "yes", fiscalWage: 40000, taxWithheld: 9000 };
+  const e = calculate(a);
+  close(e.you.box1Tax, bracketTax(40000, r) - 0.2765 * 38883);
+  assert.equal(e.you.generalCredit + e.you.labourCredit, 0);
+  // Box 3: only Dutch property counts.
+  const withProperty = calculate({ ...a, dutchProperty: 300000 });
+  assert.ok(withProperty.you.box3Tax > 0);
 });

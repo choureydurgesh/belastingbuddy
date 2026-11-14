@@ -54,14 +54,22 @@ export function buildGuide(a: Answers, e: Estimate): GuideStep[] {
       title: business ? "Fill in your business profit" : "Fill in your other work",
       dutch: business ? "Winst uit onderneming" : "Resultaat uit overige werkzaamheden",
       lines: [
-        { label: "Profit (income minus costs)", value: formatEuro(a.sideIncomeAmount ?? 0) },
         ...(business
           ? [
+              { label: "Turnover, without VAT (omzet)", value: formatEuro(a.businessRevenue ?? 0) },
+              { label: "Costs (kosten), including depreciation (afschrijvingen)", value: formatEuro(a.businessCosts ?? 0) },
+              ...(e.investmentDeduction
+                ? [
+                    { label: "Investments of €450+ per item (investeringen)", value: formatEuro(a.businessInvestAmount ?? 0) },
+                    { label: "Investment deduction (kleinschaligheidsinvesteringsaftrek)", value: formatEuro(e.investmentDeduction) },
+                  ]
+                : []),
               { label: a.sideHours === "yes" ? "Tick that you met the hours rule (urencriterium)." : "Don't tick the hours rule (urencriterium)." },
               ...(a.sideStarter === "yes" ? [{ label: "Tick the starter deduction (startersaftrek)." }] : []),
               { label: "The SME profit exemption (mkb-winstvrijstelling) is applied for you." },
+              { label: "Most people with a business use a simple bookkeeping tool or accountant for this part. Mijn Belastingdienst asks for a short balance sheet too." },
             ]
-          : []),
+          : [{ label: "Profit (income minus costs)", value: formatEuro(a.sideIncomeAmount ?? 0) }]),
       ],
     });
   }
@@ -112,7 +120,16 @@ export function buildGuide(a: Answers, e: Estimate): GuideStep[] {
       ],
     });
   }
-  if (e.box3Base > 0 || (a.studentLoanAmount ?? 0) > 0 || (a.otherDebts ?? 0) > 0) {
+  if (a.residency === "non_resident" && (a.dutchProperty ?? 0) > 0) {
+    steps.push({
+      title: "Fill in your Dutch property",
+      dutch: "Bezittingen in Nederland (box 3)",
+      lines: [
+        { label: "Value of property in the Netherlands on 1 January (WOZ)", value: formatEuro(a.dutchProperty ?? 0) },
+        { label: "Savings and shares abroad don't count for you here." },
+      ],
+    });
+  } else if (e.box3Base > 0 || (a.studentLoanAmount ?? 0) > 0 || (a.otherDebts ?? 0) > 0) {
     steps.push({
       title: "Fill in savings, investments and debts",
       dutch: "Bankrekeningen, beleggingen en schulden (box 3)",

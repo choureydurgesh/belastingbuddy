@@ -10,6 +10,8 @@ export interface Answers {
   residency?: Residency;
   moveMonth?: number; // 1–12
   qualifyingNonResident?: YesNo; // C form only
+  livingCountry?: "belgium" | "eu" | "other"; // non-qualifying non-residents
+  dutchInsured?: YesNo; // non-qualifying non-residents: Dutch social insurance (premium part)
   partner?: YesNo;
   pensionAge?: "yes" | "during" | "no";
   turned67Month?: number; // 1–12, when pensionAge = "during"
@@ -27,7 +29,11 @@ export interface Answers {
   sideType?: "business" | "other";
   sideHours?: "yes" | "no";
   sideStarter?: "yes" | "no";
-  sideIncomeAmount?: number;
+  sideIncomeAmount?: number; // "other work": profit
+  businessRevenue?: number; // business: turnover, without VAT
+  businessCosts?: number; // business: costs incl. depreciation
+  businessInvest?: "yes" | "no";
+  businessInvestAmount?: number; // total of business assets of €450+ bought this year
   provisional?: "none" | "received" | "paid";
   provisionalAmount?: number;
 
@@ -125,7 +131,20 @@ export interface TaxRules {
     starterDeduction: number;
     zvwRate: number;
     zvwMaxIncome: number;
+    /** Kleinschaligheidsinvesteringsaftrek (small-scale investment deduction). */
+    kia: {
+      minTotal: number;
+      minAsset: number;
+      fullUpTo: number;
+      rate: number;
+      fixed: number;
+      fixedUpTo: number;
+      phaseOutRate: number;
+      maxTotal: number;
+    };
   };
+  /** Social insurance premiums inside the first bracket (AOW, Anw, Wlz). Used for non-residents. */
+  nonResident: { premiumRate: number; premiumRateAow: number };
 }
 
 /** The tax for one person. */
@@ -172,6 +191,9 @@ export interface Estimate {
   box3Base: number;
   /** Partial non-resident status: tax saved by choosing it (only set when it helps). */
   partialNonResidentSaving?: number;
+  /** Business: profit before entrepreneur deductions, and the investment deduction used. */
+  businessProfit?: number;
+  investmentDeduction?: number;
   /** Income-related healthcare contribution for business owners (a separate bill). */
   zvwContribution: number;
   /** Household total: positive = refund, negative = pay */

@@ -152,6 +152,20 @@
     "hoursRequired": 1225,
     "zvwRate": 0.0485,
     "zvwMaxIncome": 79409,
-    "starterDeduction": 2123
+    "starterDeduction": 2123,
+    "kia": {
+      "minTotal": 2901,
+      "minAsset": 450,
+      "fullUpTo": 70602,
+      "rate": 0.28,
+      "fixed": 19769,
+      "fixedUpTo": 130744,
+      "phaseOutRate": 0.0756,
+      "maxTotal": 392230
+    }
+  },
+  "nonResident": {
+    "premiumRate": 0.2765,
+    "premiumRateAow": 0.0975
   }
 }

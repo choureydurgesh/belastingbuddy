@@ -38,7 +38,10 @@ const yesNoUnsure: Option[] = [...yesNo, { value: "unsure", label: "Not sure" }]
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-const isOwner = (a: Answers) => a.ownHome === "yes";
+const isOwner = (a: Answers) => a.ownHome === "yes" && !nonQualifying(a);
+/** Non-residents who don't meet the 90% test: no home or personal deductions. */
+const nonQualifying = (a: Answers) => a.residency === "non_resident" && (a.qualifyingNonResident === "no" || a.qualifyingNonResident === "unsure");
+const isBusiness = (a: Answers) => a.sideIncome === "yes" && a.sideType === "business";
 const livedHereJan1 = (a: Answers) => a.residency === "resident" || a.residency === "moved_out";
 
 export const QUESTIONS: Question[] = [
@@ -89,6 +92,28 @@ export const QUESTIONS: Question[] = [
     help: "If yes, you are a 'qualifying non-resident'. You then get the same tax credits and deductions as residents.",
     options: yesNoUnsure,
     showIf: (a) => a.residency === "non_resident",
+  },
+  {
+    id: "livingCountry",
+    section: "start",
+    kind: "choice",
+    text: "Which country did you live in?",
+    help: "This decides which tax credits you get as a non-resident.",
+    options: [
+      { value: "belgium", label: "Belgium" },
+      { value: "eu", label: "Another EU or EEA country, Switzerland or the Caribbean Netherlands" },
+      { value: "other", label: "Somewhere else" },
+    ],
+    showIf: nonQualifying,
+  },
+  {
+    id: "dutchInsured",
+    section: "start",
+    kind: "choice",
+    text: "Were you insured for Dutch social insurance (AOW, Wlz) in {year}?",
+    help: "Usually yes if you worked in the Netherlands. No if you have an A1 statement saying you're insured in another country.",
+    options: yesNoUnsure,
+    showIf: nonQualifying,
   },
   {
     id: "partner",
@@ -223,15 +248,48 @@ export const QUESTIONS: Question[] = [
     text: "Did you start your business in the last 5 years?",
     help: "Starters get an extra deduction (startersaftrek), up to 3 times in the first 5 years. Answer no if you already used it 3 times.",
     options: yesNo,
-    showIf: (a) => a.sideIncome === "yes" && a.sideType === "business" && a.sideHours === "yes",
+    showIf: (a) => isBusiness(a) && a.sideHours === "yes",
+  },
+  {
+    id: "businessRevenue",
+    section: "income",
+    kind: "money",
+    text: "What was your business turnover in {year}?",
+    help: "All you invoiced in {year}, without VAT (btw). Your bookkeeping or invoices show it.",
+    showIf: isBusiness,
+  },
+  {
+    id: "businessCosts",
+    section: "income",
+    kind: "money",
+    text: "What were your business costs in {year}?",
+    help: "For example: software, phone and internet (business part), accountant, insurance, training, travel (€0.23 per km by own car), and the yearly depreciation of things like a laptop. Without VAT if you charge VAT. Enter 0 if none.",
+    showIf: isBusiness,
+  },
+  {
+    id: "businessInvest",
+    section: "income",
+    kind: "choice",
+    text: "Did you buy business items of €450 or more each in {year}?",
+    help: "For example a laptop, machine, tools or a van. Then you may get an extra deduction (kleinschaligheidsinvesteringsaftrek, KIA). Cars for personal use and land don't count.",
+    options: yesNo,
+    showIf: isBusiness,
+  },
+  {
+    id: "businessInvestAmount",
+    section: "income",
+    kind: "money",
+    text: "What did those items cost in total?",
+    help: "Add up only items of €450 or more each, without VAT. The deduction starts when the total is €2,901 or more.",
+    showIf: (a) => isBusiness(a) && a.businessInvest === "yes",
   },
   {
     id: "sideIncomeAmount",
     section: "income",
     kind: "money",
     text: "What was your profit? That's income minus costs.",
-    help: "Use your bookkeeping. Enter 0 if you made a loss.",
-    showIf: (a) => a.sideIncome === "yes",
+    help: "Use your records. Enter 0 if you made a loss.",
+    showIf: (a) => a.sideIncome === "yes" && a.sideType === "other",
   },
   {
     id: "provisional",
@@ -312,6 +370,7 @@ export const QUESTIONS: Question[] = [
       { value: "no", label: "I rented, or lived with others" },
       { value: "yes", label: "I owned it" },
     ],
+    showIf: (a) => !nonQualifying(a),
   },
   {
     id: "homeChange",
@@ -494,6 +553,14 @@ export const QUESTIONS: Question[] = [
     help: "With the 30% ruling from before 2024 you may choose partial non-resident status. Then only Dutch property is taxed here. We work out if that saves you money. Enter 0 if it's all abroad.",
     showIf: (a) => livedHereJan1(a) && a.ruling2023 === "yes" && yearOf(a) <= 2026 && (a.otherProperty ?? 0) > 0,
   },
+  {
+    id: "dutchProperty",
+    section: "savings",
+    kind: "money",
+    text: "Did you own property in the Netherlands on 1 January {year}? Enter its value.",
+    help: "As a non-resident, only Dutch property counts in box 3: for example a home here, or one you rent out. Use the WOZ value. Bank savings and shares don't count. Enter 0 if none.",
+    showIf: (a) => a.residency === "non_resident",
+  },
 
   // ---------- F6 Deductions ----------
   {
@@ -503,13 +570,14 @@ export const QUESTIONS: Question[] = [
     text: "Did you pay healthcare costs yourself that insurance didn't cover?",
     help: "For example some medicines, aids or travel to hospital. Your 'eigen risico' and regular doctor or dentist bills don't count.",
     options: yesNo,
+    showIf: (a) => !nonQualifying(a),
   },
   {
     id: "healthcareAmount",
     section: "deductions",
     kind: "money",
     text: "How much did you pay in total?",
-    showIf: (a) => a.healthcare === "yes",
+    showIf: (a) => !nonQualifying(a) && a.healthcare === "yes",
   },
   {
     id: "gifts",
@@ -518,13 +586,14 @@ export const QUESTIONS: Question[] = [
     text: "Did you give money to a registered charity (ANBI)?",
     help: "Only gifts to organisations with ANBI status count. You can check this on the Belastingdienst website.",
     options: yesNo,
+    showIf: (a) => !nonQualifying(a),
   },
   {
     id: "giftsAmount",
     section: "deductions",
     kind: "money",
     text: "How much did you give in total?",
-    showIf: (a) => a.gifts === "yes",
+    showIf: (a) => !nonQualifying(a) && a.gifts === "yes",
   },
   {
     id: "alimony",
@@ -533,13 +602,14 @@ export const QUESTIONS: Question[] = [
     text: "Did you pay alimony to an ex-partner?",
     help: "Only alimony for your ex-partner counts. Child support does not.",
     options: yesNo,
+    showIf: (a) => !nonQualifying(a) || a.livingCountry === "belgium",
   },
   {
     id: "alimonyAmount",
     section: "deductions",
     kind: "money",
     text: "How much did you pay in {year}?",
-    showIf: (a) => a.alimony === "yes",
+    showIf: (a) => (!nonQualifying(a) || a.livingCountry === "belgium") && a.alimony === "yes",
   },
 ];
 

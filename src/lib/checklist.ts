@@ -21,6 +21,9 @@ export function buildChecklist(a: Answers): ChecklistItem[] {
     });
     items.push({ id: "move-date", title: "Your exact moving date", where: "From your municipality registration (BRP)." });
   }
+  if (a.residency === "non_resident" && a.dutchInsured === "no") {
+    items.push({ id: "a1", title: "Your A1 statement", where: "From the social security office in the country where you're insured." });
+  }
   if (a.residency === "non_resident") {
     items.push({ id: "cform", title: "The C form (non-residents)", where: "Mijn Belastingdienst, under 'buitenlandse belastingplichtigen'." });
   }
@@ -41,6 +44,9 @@ export function buildChecklist(a: Answers): ChecklistItem[] {
   }
   if (a.sideIncome === "yes") {
     items.push({ id: "side", title: "Your income and costs from side work", where: "Your invoices and bookkeeping." });
+    if (a.businessInvest === "yes") {
+      items.push({ id: "invest-bills", title: "Invoices for business items you bought", where: "Needed for the investment deduction (KIA). Keep them for 7 years." });
+    }
     if (a.sideType === "business") {
       items.push({ id: "hours", title: "Your hours log for the business", where: "Needed if you claim the 1,225-hour deduction (zelfstandigenaftrek)." });
     }

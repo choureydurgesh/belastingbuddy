@@ -82,17 +82,35 @@ export function box3(answers: Answers, rules: TaxRules, people = 1) {
   return { base, benefit: taxableBenefit, tax: taxableBenefit * r.rate };
 }
 
+/** Kleinschaligheidsinvesteringsaftrek: extra deduction when a business buys assets (laptop, tools, van). */
+export function investmentDeduction(total: number, rules: TaxRules): number {
+  const k = rules.business.kia;
+  if (total < k.minTotal || total > k.maxTotal) return 0;
+  if (total <= k.fullUpTo) return total * k.rate;
+  if (total <= k.fixedUpTo) return k.fixed;
+  return Math.max(0, k.fixed - k.phaseOutRate * (total - k.fixedUpTo));
+}
+
 /** Freelance or business profit: what is taxed, what counts as work income, and the healthcare contribution. */
 export function sideIncome(answers: Answers, rules: TaxRules) {
-  if (answers.sideIncome !== "yes") return { taxable: 0, work: 0, zvw: 0 };
-  const profit = n(answers.sideIncomeAmount);
-  if (answers.sideType !== "business") return { taxable: profit, work: profit, zvw: 0 };
+  const none = { taxable: 0, work: 0, zvw: 0, profit: 0, kia: 0 };
+  if (answers.sideIncome !== "yes") return none;
+  if (answers.sideType !== "business") {
+    const p = n(answers.sideIncomeAmount);
+    return { ...none, taxable: p, work: p, profit: p };
+  }
   const b = rules.business;
+  // Profit = turnover minus costs (can be a loss). Older saved answers only have the profit.
+  const hasSplit = answers.businessRevenue !== undefined || answers.businessCosts !== undefined;
+  const profit = hasSplit ? n(answers.businessRevenue) - n(answers.businessCosts) : n(answers.sideIncomeAmount);
+  const kia = answers.businessInvest === "yes" ? investmentDeduction(n(answers.businessInvestAmount), rules) : 0;
+  const winst = profit - kia;
   const entrepreneurDeduction =
     answers.sideHours === "yes" ? b.selfEmployedDeduction + (answers.sideStarter === "yes" ? b.starterDeduction : 0) : 0;
-  const afterDeduction = profit - Math.min(entrepreneurDeduction, profit);
+  const afterDeduction = winst - Math.min(entrepreneurDeduction, Math.max(0, winst));
+  // The SME exemption also makes a loss smaller.
   const taxable = afterDeduction * (1 - b.smeExemptionRate);
-  return { taxable, work: profit, zvw: b.zvwRate * Math.min(taxable, b.zvwMaxIncome) };
+  return { taxable, work: winst, zvw: b.zvwRate * Math.min(Math.max(0, taxable), b.zvwMaxIncome), profit, kia };
 }
 
 // ---------- Tax for one person ----------
@@ -112,6 +130,8 @@ interface PersonInput {
   withheld: number;
   provisionalPaid: number;
   provisionalReceived: number;
+  /** Non-qualifying non-residents: which parts of the credits apply, and if Dutch premiums are paid. */
+  nonResident?: { generalTax: boolean; labourTax: boolean; insured: boolean };
 }
 
 export function personTax(p: PersonInput, rules: TaxRules): PersonResult {
@@ -127,7 +147,19 @@ export function personTax(p: PersonInput, rules: TaxRules): PersonResult {
   // Blend normal and pension-age rules by the part of the year at pension age.
   const f = p.aowShare;
   const mix = (normal: number, aow: number) => (1 - f) * normal + f * aow;
-  let box1Tax = mix(bracketTax(box1Taxable, rules), bracketTax(box1Taxable, rules, true)) + capped;
+  // Not insured in the Netherlands (non-residents): no social insurance premiums in the first bracket.
+  const nr = p.nonResident;
+  const premium = (aow: boolean) => (aow ? rules.nonResident.premiumRateAow : rules.nonResident.premiumRate);
+  const firstRate = (aow: boolean) => (aow ? rules.aow.box1FirstRate : brackets[0].rate);
+  const premiumOff = (aow: boolean) => (nr && !nr.insured ? premium(aow) * Math.min(box1Taxable, brackets[0].upTo ?? 0) : 0);
+  let box1Tax =
+    mix(bracketTax(box1Taxable, rules) - premiumOff(false), bracketTax(box1Taxable, rules, true) - premiumOff(true)) + capped;
+  // Each credit has a tax part and a premium part. Non-residents may get only some of it.
+  const part = (taxPart: boolean, aow: boolean) => {
+    if (!nr) return 1;
+    const premiumShare = premium(aow) / firstRate(aow);
+    return (taxPart ? 1 - premiumShare : 0) + (nr.insured ? premiumShare : 0);
+  };
 
   // Relief for income already taxed abroad (simple share method).
   let foreignRelief = 0;
@@ -138,9 +170,15 @@ export function personTax(p: PersonInput, rules: TaxRules): PersonResult {
 
   const box3Tax = p.box3Benefit * rules.box3.rate;
   const totalIncome = box1Taxable + p.box3Benefit;
-  let generalCredit = mix(generalTaxCredit(box1Taxable, rules), generalTaxCredit(box1Taxable, rules, true));
-  let labourCredit = mix(labourTaxCredit(p.wage + p.side.work, rules), labourTaxCredit(p.wage + p.side.work, rules, true));
-  let elderlyCredit = f * (elderlyTaxCredit(totalIncome, rules) + (p.single ? rules.aow.singleElderlyCredit : 0));
+  const work = p.wage + p.side.work;
+  const gt = !!nr?.generalTax;
+  const lt = !!nr?.labourTax;
+  let generalCredit = mix(
+    generalTaxCredit(box1Taxable, rules) * part(gt, false),
+    generalTaxCredit(box1Taxable, rules, true) * part(gt, true),
+  );
+  let labourCredit = mix(labourTaxCredit(work, rules) * part(lt, false), labourTaxCredit(work, rules, true) * part(lt, true));
+  let elderlyCredit = nr ? 0 : f * (elderlyTaxCredit(totalIncome, rules) + (p.single ? rules.aow.singleElderlyCredit : 0));
 
   // Credits can't make your tax lower than zero.
   const before = box1Tax + box3Tax;
@@ -180,17 +218,26 @@ export function personTax(p: PersonInput, rules: TaxRules): PersonResult {
 export function calculate(answers: Answers, rules: TaxRules = rulesFor(answers)): Estimate {
   const notes: string[] = [];
   const year = rules.year;
-  let available = true;
+  const available = true;
   let rough = false;
   const hasPartner = answers.partner === "yes";
 
+  const nonQualifying = answers.residency === "non_resident" && answers.qualifyingNonResident !== "yes";
   if (answers.residency === "non_resident") {
-    if (answers.qualifyingNonResident === "yes") {
-      rough = true;
-      notes.push("C form: we used your Dutch income only. Savings (box 3) are left out, except Dutch property.");
-    } else {
-      available = false;
-      notes.push("We can only estimate the C form if at least 90% of your income is taxed in the Netherlands. Your checklist and guide still work.");
+    rough = true;
+    notes.push("C form: we used your Dutch income only. In box 3 only property in the Netherlands counts.");
+    if (nonQualifying) {
+      notes.push(
+        "You're not a qualifying non-resident, so you pay tax on your Dutch income without most deductions. Which tax credits you get depends on where you live.",
+      );
+      if (answers.qualifyingNonResident === "unsure") {
+        notes.push("You weren't sure if you qualify, so we used the stricter rules. If you do qualify, you likely get more back.");
+      }
+      if (answers.dutchInsured === "no") {
+        notes.push("You're not insured in the Netherlands, so you pay no Dutch social insurance premiums and get no premium part of the tax credits.");
+      } else if (answers.dutchInsured === "unsure") {
+        notes.push("We assumed you're insured in the Netherlands, which is normal if you work here. If you have an A1 statement from another country, choose 'No'.");
+      }
     }
   }
   if (answers.residency === "moved_in" || answers.residency === "moved_out") {
@@ -208,8 +255,15 @@ export function calculate(answers: Answers, rules: TaxRules = rulesFor(answers))
   if (side.zvw > 0) {
     notes.push(`As a business owner you also pay a healthcare contribution (Zvw) of about €${round(side.zvw)}. It comes as a separate bill and is not in this result.`);
   }
-  if (answers.sideIncome === "yes" && answers.sideType === "business") {
-    notes.push("Business costs and investment deductions are not in this estimate. Enter profit after costs.");
+  if (side.kia > 0) {
+    notes.push(`Investment deduction (KIA): €${round(side.kia)} off your profit.`);
+  }
+  if (answers.sideIncome === "yes" && answers.businessInvest === "yes" && side.kia === 0) {
+    notes.push("Your investments were too small or too large for the investment deduction (KIA). It applies from €2,901 to €392,230 in total.");
+  }
+  if (side.profit < 0) {
+    rough = true;
+    notes.push("Your business made a loss. It lowers your other box 1 income. A loss that's left over can be used in other years.");
   }
   const foreign = answers.residency !== "non_resident" && answers.foreignIncome === "yes" ? n(answers.foreignIncomeAmount) : 0;
   const foreignRelief = answers.foreignTaxed === "yes";
@@ -280,7 +334,9 @@ export function calculate(answers: Answers, rules: TaxRules = rulesFor(answers))
   let b3 = { base: 0, benefit: 0, tax: 0 };
   if (answers.residency === "moved_in") {
     notes.push(`You didn't live here on 1 January ${year}, so box 3 usually doesn't apply this year.`);
-  } else if (answers.residency !== "non_resident") {
+  } else if (answers.residency === "non_resident") {
+    b3 = box3({ otherProperty: n(answers.dutchProperty) }, rules, people);
+  } else {
     b3 = box3(answers, rules, people);
   }
   if (year === 2026 && b3.base > 0) {
@@ -336,7 +392,13 @@ export function calculate(answers: Answers, rules: TaxRules = rulesFor(answers))
     return { paid: kind === "paid" ? amount : 0, received: kind === "received" ? amount : 0 };
   };
 
+  const country = answers.livingCountry ?? "other";
+  const yourNonResident = nonQualifying
+    ? { generalTax: country === "belgium", labourTax: country !== "other", insured: answers.dutchInsured !== "no" }
+    : undefined;
+
   const yourBase = {
+    nonResident: yourNonResident,
     wage,
     side,
     foreign,
@@ -356,6 +418,7 @@ export function calculate(answers: Answers, rules: TaxRules = rulesFor(answers))
 
   // 7. Partners: try different splits of the shared items and keep the best one
   const partnerBase = {
+    nonResident: yourNonResident,
     wage: partnerWage,
     side: { taxable: 0, work: 0 },
     foreign: 0,
@@ -410,6 +473,8 @@ export function calculate(answers: Answers, rules: TaxRules = rulesFor(answers))
       alimonyDeduction: round(alimonyDeduction),
       box3Base: round(b3.base),
       zvwContribution: round(side.zvw),
+      businessProfit: answers.sideType === "business" && answers.sideIncome === "yes" ? round(side.profit) : undefined,
+      investmentDeduction: side.kia > 0 ? round(side.kia) : undefined,
       partialNonResidentSaving,
       result: you.result + (partner?.result ?? 0),
     };

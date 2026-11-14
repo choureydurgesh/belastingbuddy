@@ -22,6 +22,7 @@ import { parseMoney } from "@/lib/money";
 import { useLang } from "@/lib/i18n";
 import { ScanJaaropgaaf } from "./ScanJaaropgaaf";
 import { JaaropgaafStep } from "./JaaropgaafStep";
+import { DOC_FOR, DocReader } from "./DocReader";
 import type { ScanResult } from "@/lib/scan";
 
 export function ReturnApp() {
@@ -47,7 +48,7 @@ export function ReturnApp() {
   }, []);
 
   const visible = useMemo(() => visibleQuestions(answers), [answers]);
-  const current: Question | null = editingId ? QUESTIONS.find((q) => q.id === editingId) ?? null : nextQuestion(answers);
+  const current: Question | null = editingId ? visible.find((q) => q.id === editingId) ?? QUESTIONS.find((q) => q.id === editingId) ?? null : nextQuestion(answers);
   const estimate = useMemo(() => calculate(cleanAnswers(answers)), [answers]);
 
   function answer(q: Question, value: string | number) {
@@ -143,6 +144,9 @@ export function ReturnApp() {
               <AnswerInput key={current.id} question={current} value={answers[current.id]} onAnswer={answer} answers={answers} />
             )}
             {current?.id === "fiscalWage" && answers.jaaropgaaf !== "scanned" && <ScanJaaropgaaf onUse={applyScan} />}
+            {current && DOC_FOR[current.id] && (
+              <DocReader key={`doc-${current.id}`} kind={DOC_FOR[current.id]!} onUse={(v) => answer(current, v)} />
+            )}
           </section>
 
           <aside className="stack side">

@@ -158,3 +158,76 @@ export function answersFromDocs(docs: ScannedDoc[], years: number[]) {
   }
   return found;
 }
+
+// ---------- F24: other documents ----------
+// One number per document: the WOZ value, the mortgage interest paid, or a balance on 1 January.
+
+export type DocKind = "woz" | "mortgage" | "bank" | "investments";
+
+const DOC_LABELS: Record<DocKind, { total?: RegExp[]; labels: RegExp[]; skip?: RegExp[]; sumAll?: boolean }> = {
+  woz: {
+    labels: [/woz[- ]?waarde/i, /vastgestelde\s*waarde/i, /waarde\s*(?:van\s*)?(?:de|het|uw)?\s*(?:onroerende\s*zaak|woning|object)/i, /woz\s*value/i],
+    skip: [/waardepeildatum|peildatum|toestandsdatum/i],
+  },
+  mortgage: {
+    total: [/totaal\s*(?:betaalde\s*)?(?:hypotheek)?rente/i, /(?:hypotheek)?rente\s*totaal/i, /total\s*interest/i],
+    labels: [/betaalde\s*(?:hypotheek)?rente/i, /rente\s*betaald/i, /hypotheekrente/i, /interest\s*paid/i],
+    skip: [/percentage|rentevast|aflossing/i],
+    sumAll: true,
+  },
+  bank: {
+    labels: [
+      /saldo\s*(?:per|op)\s*(?:1\s*januari|0?1[-./]0?1)/i,
+      /saldo\s*(?:per|op)\s*(?:31\s*december|31[-./]12)/i,
+      /beginsaldo/i,
+      /opening\s*balance/i,
+      /balance\s*(?:on|at|as\s*(?:of|at))\s*(?:1\s*jan|0?1[-./]0?1|31\s*dec)/i,
+      /^saldo\b/i,
+    ],
+  },
+  investments: {
+    labels: [
+      /waarde\s*(?:per|op)\s*(?:1\s*januari|0?1[-./]0?1|31\s*december|31[-./]12)/i,
+      /portefeuille\s*waarde|portefeuillewaarde/i,
+      /totale?\s*waarde/i,
+      /portfolio\s*value/i,
+      /total\s*value/i,
+    ],
+  },
+};
+
+export interface DocResult {
+  amount: number | null;
+}
+
+/** Find the one number we need on a WOZ letter, mortgage statement, bank or broker statement. */
+export function extractDocument(kind: DocKind, text: string): DocResult {
+  const lines = text
+    .split(/\r?\n/)
+    // Percentages ("3,450%") look like money: take them out first.
+    .map((l) => l.replace(/-?\d+(?:[.,]\d+)?\s*%/g, " ").replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+  const spec = DOC_LABELS[kind];
+  if (spec.total) {
+    const t = findAfterLabel(lines, spec.total, spec.skip);
+    if (t !== null) return { amount: t };
+  }
+  if (spec.sumAll) {
+    // Several loan parts: add the interest of each part.
+    let sum = 0;
+    let found = false;
+    for (let i = 0; i < lines.length; i++) {
+      if (spec.skip?.some((r) => r.test(lines[i]))) continue;
+      const label = spec.labels.find((r) => r.test(lines[i]));
+      if (!label) continue;
+      const m = lines[i].match(label)!;
+      const v = firstAmount(lines[i].slice((m.index ?? 0) + m[0].length)) ?? firstAmount(lines[i + 1] ?? "");
+      if (v !== null) {
+        sum += v;
+        found = true;
+      }
+    }
+    return { amount: found ? sum : null };
+  }
+  return { amount: findAfterLabel(lines, spec.labels, spec.skip) };
+}

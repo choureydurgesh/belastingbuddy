@@ -76,3 +76,22 @@ test("two employers are added up; partner's statement fills partner answers", ()
   assert.equal(b.taxWithheld, undefined);
   assert.deepEqual(answersFromDocs([], [2025]), { jaaropgaaf: "skipped" });
 });
+
+import { extractDocument } from "./scan";
+
+test("WOZ letter: finds the value, not the date", () => {
+  const text = "Gemeente Utrecht\nWOZ-beschikking 2025\nWaardepeildatum 1 januari 2024\nWOZ-waarde: € 412.000\nTermijn bezwaar 6 weken";
+  assert.equal(extractDocument("woz", text).amount, 412000);
+});
+
+test("Mortgage statement: adds up loan parts, skips the interest rate", () => {
+  const text = "Jaaroverzicht 2025\nLeningdeel 1 Rentepercentage 3,450%\nBetaalde rente € 4.120,55\nLeningdeel 2\nBetaalde rente € 2.300,10\nAflossing € 6.000,00";
+  assert.equal(extractDocument("mortgage", text).amount, 4121 + 2300);
+  assert.equal(extractDocument("mortgage", "Totaal betaalde rente 2025: 6.420,65\nBetaalde rente 4.120,55").amount, 6421);
+});
+
+test("Bank and broker statements: balance on 1 January", () => {
+  assert.equal(extractDocument("bank", "Jaaroverzicht 2025\nSaldo per 1 januari 2025 € 12.345,67\nSaldo per 31 december 2025 € 15.000,00").amount, 12346);
+  assert.equal(extractDocument("investments", "Portefeuilleoverzicht\nWaarde per 31-12-2024 € 23.456,00").amount, 23456);
+  assert.equal(extractDocument("bank", "nothing useful here").amount, null);
+});
