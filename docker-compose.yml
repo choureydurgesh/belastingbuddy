@@ -1,0 +1,66 @@
+# =============================================================================
+# DOCKER COMPOSE: run the app + the whole observability stack with ONE command:
+#     docker compose up -d --build
+#
+#   App          http://localhost:8080
+#   Prometheus   http://localhost:9090
+#   Grafana      http://localhost:3000   (login admin / admin)
+#   OTel collector  OTLP in on :4318 (HTTP) and :4317 (gRPC)
+# =============================================================================
+services:
+
+  # ---- 1. The application (nginx serving the static site) ----
+  app:
+    build: .
+    # On a server (Ansible) we set APP_IMAGE to the image CI pushed to GHCR.
+    image: ${APP_IMAGE:-belastingbuddy:local}
+    ports: ["8080:8080"]
+    restart: unless-stopped
+
+  # ---- 2. Exporter: translates nginx /stub_status into Prometheus metrics ----
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:1.3
+    command: ["--nginx.scrape-uri=http://app:8080/stub_status"]
+    depends_on: [app]
+    restart: unless-stopped
+
+  # ---- 3. Blackbox exporter: probes the site like a real user (the SLI for availability) ----
+  blackbox:
+    image: prom/blackbox-exporter:v0.25.0
+    volumes: ["./observability/blackbox/blackbox.yml:/etc/blackbox_exporter/config.yml:ro"]
+    restart: unless-stopped
+
+  # ---- 4. OpenTelemetry Collector: receives traces/metrics/logs (OTLP) and routes them ----
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.111.0
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes: ["./observability/otel/otel-collector.yaml:/etc/otelcol/config.yaml:ro"]
+    ports: ["4317:4317", "4318:4318"]
+    restart: unless-stopped
+
+  # ---- 5. Prometheus: scrapes & stores metrics, evaluates alert rules ----
+  prometheus:
+    image: prom/prometheus:v2.55.0
+    volumes:
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./observability/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus-data:/prometheus
+    ports: ["9090:9090"]
+    restart: unless-stopped
+
+  # ---- 6. Grafana: dashboards. Datasource + dashboard are provisioned from files (no clicking) ----
+  grafana:
+    image: grafana/grafana:11.3.0
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}   # change on any real server!
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports: ["3000:3000"]
+    depends_on: [prometheus]
+    restart: unless-stopped
+
+volumes:
+  prometheus-data:
+  grafana-data:
