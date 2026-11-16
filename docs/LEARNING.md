@@ -75,6 +75,7 @@ terraform init && terraform plan && terraform apply
 terraform destroy                               # when finished – avoids AWS cost!
 ```
 - **Learn:** providers, resources vs data sources, variables/outputs, state (and why remote state), `plan` before `apply`, generated Ansible inventory.
+- **In CI** (`.github/workflows/terraform.yml`): until you add the repo secrets `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and `SSH_PUBLIC_KEY`, the job uses dummy values and only runs `terraform validate`. Add them and `plan` (and manual apply/destroy) switch on by themselves.
 
 ## Step 7 – Ansible
 ```bash
