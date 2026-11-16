@@ -1,0 +1,17 @@
+# Install Docker + the compose plugin from Ubuntu's own packages
+- name: Install Docker
+  ansible.builtin.apt:
+    name: [docker.io, docker-compose-v2]
+    state: present
+
+- name: Make sure Docker is running and starts on boot
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
+
+- name: Let the ubuntu user run docker without sudo
+  ansible.builtin.user:
+    name: ubuntu
+    groups: docker
+    append: true
