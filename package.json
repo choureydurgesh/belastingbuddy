@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "npx serve out",
+    "typecheck": "tsc --noEmit",
     "test": "tsx --test src/lib/**/*.test.ts src/lib/*.test.ts",
     "deploy": "next build && wrangler pages deploy out --project-name belastingbuddy"
   },

@@ -1,0 +1,30 @@
+# Reusable workflow: scan the pushed image for known CVEs with Trivy ("shift-left security").
+name: Image scan
+
+on:
+  workflow_call:
+    inputs:
+      image-ref:
+        required: true
+        type: string
+
+jobs:
+  trivy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      # Third-party actions are pinned to a full commit SHA (a tag can be moved, a SHA can't)
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      # trivy-action's tags were hijacked in March 2026 - exactly the attack SHA pinning prevents
+      - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ inputs.image-ref }}
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true       # ignore CVEs nobody has patched yet
+          exit-code: "1"             # fail the pipeline if anything is found

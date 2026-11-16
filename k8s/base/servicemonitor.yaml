@@ -1,0 +1,33 @@
+# OBSERVABILITY ON KUBERNETES: tells Prometheus (installed by kube-prometheus-stack) to scrape our Service.
+# Needs the ServiceMonitor CRD - it exists once the monitoring Argo app is installed.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: belastingbuddy
+  labels: { release: kube-prometheus-stack }   # must match the stack's selector
+spec:
+  selector:
+    matchLabels: { app: belastingbuddy }
+  endpoints:
+    - port: metrics
+      interval: 15s
+---
+# Alert rules as Kubernetes objects (picked up by the Prometheus operator)
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: belastingbuddy
+  labels: { release: kube-prometheus-stack }
+spec:
+  groups:
+    - name: belastingbuddy
+      rules:
+        - alert: BelastingBuddyDown
+          expr: absent(up{job="belastingbuddy"} == 1)
+          for: 2m
+          labels: { severity: critical }
+          annotations: { summary: "No healthy BelastingBuddy pod is being scraped" }
+        - alert: BelastingBuddyPodRestarting
+          expr: increase(kube_pod_container_status_restarts_total{pod=~"belastingbuddy-.*"}[15m]) > 3
+          labels: { severity: warning }
+          annotations: { summary: "Pod {{ $labels.pod }} keeps restarting" }

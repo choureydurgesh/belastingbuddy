@@ -1,0 +1,19 @@
+# =============================================================================
+# ANSIBLE CONCEPT: a playbook says "make these servers look like this" (idempotent:
+# running it twice changes nothing the second time).
+#   inventory = WHICH servers      playbook = WHAT to do      role = reusable group of tasks
+# Run:  cd ansible && ansible-playbook site.yml
+# Dry run:  ansible-playbook site.yml --check --diff
+# =============================================================================
+- name: Configure the BelastingBuddy server
+  hosts: web
+  become: true            # run as root (sudo)
+  vars:
+    app_dir: /opt/belastingbuddy
+    # Image pushed by the GitHub Actions pipeline. Override: -e app_image=ghcr.io/you/belastingbuddy:abc1234
+    app_image: ghcr.io/choureydurgesh/belastingbuddy:latest
+    grafana_password: "{{ lookup('env', 'GRAFANA_PASSWORD') | default('change-me', true) }}"
+  roles:
+    - common
+    - docker
+    - app

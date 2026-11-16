@@ -1,0 +1,60 @@
+# Terraform in CI:  PR => show the PLAN as a comment-friendly log,  manual run => APPLY.
+#
+# Repo secrets (Settings -> Secrets and variables -> Actions):
+#   AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, SSH_PUBLIC_KEY
+# NOT ADDED YET: until all three exist, the job uses dummy values and only runs
+# `terraform validate` (checks the code, needs no AWS account). Fake keys can't run
+# `plan` - it asks AWS for the Ubuntu image and the VPC - so plan/apply/destroy are
+# switched off. Add the real secrets and they switch on again; nothing to edit here.
+# (Better in real life: OIDC role instead of long-lived keys - good interview talking point.)
+name: Terraform
+
+on:
+  pull_request:
+    paths: ["terraform/**"]
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "plan, apply or destroy"
+        type: choice
+        options: [plan, apply, destroy]
+        default: plan
+
+permissions:
+  contents: read
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform
+    env:
+      # "true" once all three real secrets are added (secrets can't be used in `if:` directly)
+      HAS_AWS_SECRETS: ${{ secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != '' && secrets.SSH_PUBLIC_KEY != '' }}
+      # Dummy fallbacks for now - they are never sent to AWS (plan is skipped without real secrets)
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID || 'dummy-until-secret-added' }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY || 'dummy-until-secret-added' }}
+      AWS_REGION: eu-west-1
+      TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY || 'ssh-ed25519 dummy-until-secret-added' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+      - run: terraform init
+      - run: terraform validate
+      - name: AWS secrets not added yet
+        if: env.HAS_AWS_SECRETS != 'true'
+        run: |
+          echo "::notice::AWS secrets not set yet - ran terraform validate only. Add AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and SSH_PUBLIC_KEY to enable plan."
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.action }}" != "plan" ]; then
+            echo "::error::Can't ${{ inputs.action }} without the AWS secrets."
+            exit 1
+          fi
+      - run: terraform plan -out=tfplan
+        if: env.HAS_AWS_SECRETS == 'true'
+      - name: Apply
+        if: env.HAS_AWS_SECRETS == 'true' && github.event_name == 'workflow_dispatch' && inputs.action == 'apply'
+        run: terraform apply -auto-approve tfplan
+      - name: Destroy
+        if: env.HAS_AWS_SECRETS == 'true' && github.event_name == 'workflow_dispatch' && inputs.action == 'destroy'
+        run: terraform destroy -auto-approve

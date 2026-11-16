@@ -1,0 +1,30 @@
+# Installs Prometheus + Grafana + Alertmanager on the cluster using the community Helm chart,
+# ALSO managed by Argo CD (so even the monitoring stack is GitOps).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kube-prometheus-stack
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://prometheus-community.github.io/helm-charts
+    chart: kube-prometheus-stack
+    targetRevision: 65.1.1
+    helm:
+      values: |
+        prometheus:
+          prometheusSpec:
+            # pick up ServiceMonitors/PrometheusRules from ANY namespace, not only the Helm release's
+            serviceMonitorSelectorNilUsesHelmValues: false
+            ruleSelectorNilUsesHelmValues: false
+        grafana:
+          adminPassword: admin      # demo only! use a Secret / external secrets in real life
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true       # the chart's CRDs are too big for normal apply

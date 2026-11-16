@@ -1,0 +1,47 @@
+# Copy compose + monitoring config to the server and start everything
+- name: Create app folder
+  ansible.builtin.file:
+    path: "{{ app_dir }}"
+    state: directory
+    mode: "0750"            # owner + group only, other users on the server get nothing
+
+- name: Copy docker-compose.yml
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../docker-compose.yml"
+    dest: "{{ app_dir }}/docker-compose.yml"
+    mode: "0640"
+
+- name: Copy observability configs (Prometheus, Grafana, OTel, blackbox)
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../observability/"
+    dest: "{{ app_dir }}/observability/"
+    mode: "preserve"
+
+- name: Write .env file (image + secrets are kept OUT of the compose file)
+  ansible.builtin.copy:
+    dest: "{{ app_dir }}/.env"
+    mode: "0600"            # only root can read it
+    content: |
+      APP_IMAGE={{ app_image }}
+      GRAFANA_PASSWORD={{ grafana_password }}
+  no_log: true              # don't print the password in Ansible output
+
+- name: Pull the app image built by CI (GHCR package must be public, or run docker login first)
+  ansible.builtin.command: docker pull {{ app_image }}
+  changed_when: false
+
+# --no-build: the server has no source code, it only uses the image pulled above
+- name: Start / update the stack
+  ansible.builtin.command: docker compose up -d --no-build --remove-orphans
+  args:
+    chdir: "{{ app_dir }}"
+  register: compose_up
+  changed_when: "'Started' in compose_up.stderr or 'Recreated' in compose_up.stderr or 'Created' in compose_up.stderr"
+
+- name: Wait until the site answers
+  ansible.builtin.uri:
+    url: http://127.0.0.1:8080/healthz
+  register: health
+  retries: 15
+  delay: 4
+  until: health.status == 200

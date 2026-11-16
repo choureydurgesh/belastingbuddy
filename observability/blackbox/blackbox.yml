@@ -1,0 +1,8 @@
+# Blackbox exporter: defines HOW to probe. "http_2xx" = succeed if we get a 2xx status.
+modules:
+  http_2xx:
+    prober: http
+    timeout: 5s
+    http:
+      valid_status_codes: []   # empty = any 2xx
+      follow_redirects: true

@@ -1,0 +1,11 @@
+# KUSTOMIZE: builds final YAML from a "base" + small per-environment "overlays". No templating language needed.
+# Preview any environment with:  kubectl kustomize k8s/overlays/dev
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - deployment.yaml
+  - service.yaml
+  - ingress.yaml
+  - hpa.yaml
+  - pdb.yaml
+  - servicemonitor.yaml

@@ -1,0 +1,6 @@
+apiVersion: 1
+providers:
+  - name: belastingbuddy
+    folder: BelastingBuddy
+    type: file
+    options: { path: /var/lib/grafana/dashboards }
