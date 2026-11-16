@@ -160,11 +160,11 @@ export function ScanJaaropgaaf({ onUse }: { onUse: (r: ScanResult) => void }) {
           <table className="breakdown">
             <tbody>
               <tr>
-                <td>{t("Fiscal wage")}</td>
+                <th scope="row">{t("Fiscal wage")}</th>
                 <td className="num">{state.result.fiscalWage !== null ? formatEuro(state.result.fiscalWage) : t("not found")}</td>
               </tr>
               <tr>
-                <td>{t("Tax withheld")}</td>
+                <th scope="row">{t("Tax withheld")}</th>
                 <td className="num">{state.result.taxWithheld !== null ? formatEuro(state.result.taxWithheld) : t("not found")}</td>
               </tr>
             </tbody>

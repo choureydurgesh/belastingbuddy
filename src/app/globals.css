@@ -127,7 +127,8 @@ p { margin: 0; }
 .result-label { font-size: 20px; letter-spacing: -0.01em; font-weight: 600; color: var(--muted); }
 .notes { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; color: var(--muted); font-size: 15px; line-height: 1.45; }
 .breakdown { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 15px; }
-.breakdown td { padding: 7px 0; border-bottom: 1px solid var(--line); }
+.breakdown th, .breakdown td { padding: 7px 0; border-bottom: 1px solid var(--line); }
+.breakdown th { font-weight: inherit; text-align: left; }
 .breakdown .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; padding-left: 12px; }
 .breakdown tr.strong td { font-weight: 700; }
 .breakdown caption { text-align: left; font-weight: 800; font-size: 16px; padding-top: 8px; }
