@@ -1,0 +1,15 @@
+# An Ingress = HTTP routing from outside the cluster to a Service (needs an ingress controller, e.g. ingress-nginx).
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: belastingbuddy
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: belastingbuddy.localtest.me      # *.localtest.me always resolves to 127.0.0.1 - handy for kind/minikube
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: { name: belastingbuddy, port: { name: http } }

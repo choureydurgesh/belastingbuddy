@@ -1,0 +1,27 @@
+# DEV overlay: smaller (1 replica), uses the locally built image (kind load docker-image belastingbuddy:local)
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: belastingbuddy-dev
+resources:
+  - ../../base
+  - namespace.yaml
+images:
+  - name: belastingbuddy
+    newName: belastingbuddy
+    newTag: local
+patches:
+  - target: { kind: Deployment, name: belastingbuddy }
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+  - target: { kind: HorizontalPodAutoscaler, name: belastingbuddy }
+    patch: |-
+      - op: replace
+        path: /spec/minReplicas
+        value: 1
+  - target: { kind: PodDisruptionBudget, name: belastingbuddy }
+    patch: |-
+      - op: replace
+        path: /spec/minAvailable
+        value: 0

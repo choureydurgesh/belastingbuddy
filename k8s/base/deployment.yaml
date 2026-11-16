@@ -1,0 +1,53 @@
+# KUBERNETES CONCEPT: a Deployment keeps N identical Pods running and does rolling updates.
+# If a pod crashes, Kubernetes starts a new one (self-healing).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: belastingbuddy
+  labels: { app: belastingbuddy }
+spec:
+  replicas: 2                       # two copies => no downtime during updates or node failure
+  selector:
+    matchLabels: { app: belastingbuddy }
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: { maxUnavailable: 0, maxSurge: 1 }   # never drop below 2 healthy pods
+  template:
+    metadata:
+      labels: { app: belastingbuddy }
+    spec:
+      containers:
+        # ---- main container: the website ----
+        - name: web
+          image: belastingbuddy                # placeholder: overlays/CI replace this with the real image:tag
+          ports: [{ name: http, containerPort: 8080 }]
+          # Readiness = "may I receive traffic?"   Liveness = "am I alive, or restart me?"
+          readinessProbe:
+            httpGet: { path: /healthz, port: http }
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          # requests = guaranteed minimum (used for scheduling); limits = hard maximum
+          resources:
+            requests: { cpu: 50m, memory: 32Mi }
+            limits: { cpu: 200m, memory: 128Mi }
+          securityContext:                     # run as hardened as possible
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false      # nginx needs to write temp files; use emptyDir if you tighten this
+            capabilities: { drop: [ALL] }
+        # ---- sidecar container: turns nginx stats into Prometheus metrics (same pod, shares localhost) ----
+        - name: nginx-exporter
+          image: nginx/nginx-prometheus-exporter:1.3
+          args: ["--nginx.scrape-uri=http://127.0.0.1:8080/stub_status"]
+          ports: [{ name: metrics, containerPort: 9113 }]
+          resources:
+            requests: { cpu: 10m, memory: 16Mi }
+            limits: { cpu: 50m, memory: 32Mi }
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities: { drop: [ALL] }
