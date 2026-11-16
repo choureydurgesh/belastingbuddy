@@ -5,3 +5,9 @@ out/
 *.tsbuildinfo
 next-env.d.ts
 .DS_Store
+
+# --- DevOps ---
+terraform/.terraform/
+terraform/*.tfstate*
+terraform/terraform.tfvars
+terraform/tfplan
