@@ -1,0 +1,90 @@
+# =============================================================================
+# GITHUB ACTIONS CONCEPTS in this file:
+#   - triggers (on:)             - jobs run in PARALLEL by default
+#   - matrix strategy            - caching
+#   - reusable workflow (workflow_call) so pipeline.yml can re-use this file
+# This is the "CI" half: prove the code is good BEFORE we build an image.
+# =============================================================================
+name: CI
+
+on:
+  pull_request:            # every PR is checked
+  workflow_call:           # lets other workflows call this one (see pipeline.yml)
+  workflow_dispatch:       # manual "Run workflow" button
+
+permissions:
+  contents: read           # least privilege: CI only needs to read the code
+
+jobs:
+  # ---- 1. Unit tests + build, on two Node versions at the same time (matrix) ----
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [20, 22]     # README says "Node 20 or newer", so we prove both work
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      # `npm ci` = clean, reproducible install from package-lock.json. Falls back to
+      # `npm install` if the lockfile hasn't been committed yet. TIP: commit it, then add `cache: npm` to setup-node.
+      - run: npm ci || npm install
+      - run: npx tsc --noEmit      # type check (catches bugs without running)
+      - run: npm test              # the tax maths tests
+      - run: npm run build         # make sure the static export still builds
+
+  # ---- 2. Lint the Dockerfile (best-practice checker) ----
+  docker-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+          failure-threshold: warning
+
+  # ---- 3. Look for accidentally committed passwords / API keys ----
+  secrets-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0         # gitleaks must see full history, not just the last commit
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ---- 4. Known-vulnerable npm packages ----
+  dependency-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm ci || npm install
+      - run: npm audit --audit-level=high    # fails only on HIGH / CRITICAL issues
+
+  # ---- 5. Validate the infrastructure code too (no cloud credentials needed) ----
+  iac-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - name: Terraform fmt + validate
+        working-directory: terraform
+        run: |
+          terraform fmt -check -recursive
+          terraform init -backend=false
+          terraform validate
+      - name: Validate Kubernetes manifests (kustomize + kubeconform)
+        run: |
+          curl -sSL https://github.com/yannh/kubeconform/releases/download/v0.6.7/kubeconform-linux-amd64.tar.gz | tar xz
+          for env in dev prod; do
+            kubectl kustomize k8s/overlays/$env | ./kubeconform -strict -ignore-missing-schemas -summary
+          done
+      - name: Ansible syntax check
+        run: |
+          pip install ansible   # full package includes community.general (ufw module)
+          ansible-playbook -i localhost, --syntax-check ansible/site.yml

@@ -1,0 +1,41 @@
+# Terraform in CI:  PR => show the PLAN as a comment-friendly log,  manual run => APPLY.
+# Needs repo secrets: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, SSH_PUBLIC_KEY
+# (Better in real life: OIDC role instead of long-lived keys - good interview talking point.)
+name: Terraform
+
+on:
+  pull_request:
+    paths: ["terraform/**"]
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "plan, apply or destroy"
+        type: choice
+        options: [plan, apply, destroy]
+        default: plan
+
+permissions:
+  contents: read
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: eu-west-1
+      TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - run: terraform init
+      - run: terraform plan -out=tfplan
+      - name: Apply
+        if: github.event_name == 'workflow_dispatch' && inputs.action == 'apply'
+        run: terraform apply -auto-approve tfplan
+      - name: Destroy
+        if: github.event_name == 'workflow_dispatch' && inputs.action == 'destroy'
+        run: terraform destroy -auto-approve

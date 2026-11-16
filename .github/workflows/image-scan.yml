@@ -1,0 +1,28 @@
+# Reusable workflow: scan the pushed image for known CVEs with Trivy ("shift-left security").
+name: Image scan
+
+on:
+  workflow_call:
+    inputs:
+      image-ref:
+        required: true
+        type: string
+
+jobs:
+  trivy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ inputs.image-ref }}
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true       # ignore CVEs nobody has patched yet
+          exit-code: "1"             # fail the pipeline if anything is found
