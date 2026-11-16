@@ -1,0 +1,15 @@
+# Keeps the build context small & fast, and stops secrets/junk entering the image.
+node_modules
+.next
+out
+.git
+.github
+.wrangler
+terraform
+ansible
+k8s
+argocd
+observability
+docs
+*.md
+.env*
