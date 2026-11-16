@@ -11,9 +11,10 @@ WORKDIR /app
 
 # Copy ONLY the dependency files first. Docker caches each step ("layer"),
 # so `npm ci` is re-run only when package*.json change, not on every code edit.
-COPY package.json package-lock.json* ./
-# Use the lockfile when present (reproducible). Commit package-lock.json to always get `npm ci`.
-RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
+COPY package.json package-lock.json ./
+# `npm ci` installs the exact versions in the lockfile (reproducible).
+# --ignore-scripts stops dependencies from running their own install scripts during the build.
+RUN npm ci --ignore-scripts
 
 # Now copy the source code and build. next.config.ts has output:"export",
 # so this produces plain HTML/CSS/JS in the /app/out folder.

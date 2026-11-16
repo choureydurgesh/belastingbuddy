@@ -71,6 +71,10 @@ resource "aws_instance" "app" {
   key_name               = aws_key_pair.deployer.key_name
   vpc_security_group_ids = [aws_security_group.web.id]
 
+  # Public on purpose: it serves the website and Ansible connects over SSH.
+  # The security group above limits what is reachable (SSH and Grafana only from allowed_ssh_cidr).
+  associate_public_ip_address = true
+
   root_block_device {
     volume_size = 20
     encrypted   = true # security best practice

@@ -19,7 +19,7 @@ spec:
       containers:
         # ---- main container: the website ----
         - name: web
-          image: belastingbuddy                # placeholder: overlays/CI replace this with the real image:tag
+          image: belastingbuddy:placeholder    # always pin a tag; overlays/CI replace this with the real image:tag
           ports: [{ name: http, containerPort: 8080 }]
           # Readiness = "may I receive traffic?"   Liveness = "am I alive, or restart me?"
           readinessProbe:

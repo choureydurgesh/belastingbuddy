@@ -30,7 +30,7 @@ the app is simple, so you can focus on the DevOps tools. Work through the steps 
 ```bash
 git clone https://github.com/choureydurgesh/belastingbuddy.git
 cd belastingbuddy
-npm install            # creates package-lock.json -> COMMIT IT (reproducible builds, `npm ci`)
+npm ci                 # exact versions from the committed package-lock.json (reproducible)
 npm test && npm run build
 ```
 

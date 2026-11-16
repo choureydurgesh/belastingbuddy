@@ -58,10 +58,9 @@ jobs:
       - name: Set new image tag in the prod overlay
         working-directory: k8s/overlays/prod
         run: |
-          # "kustomize edit set image" rewrites the newTag line in kustomization.yaml
-          curl -sSL "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
-          ./kustomize edit set image belastingbuddy=${{ needs.build.outputs.image }}:${{ needs.build.outputs.tag }}
-          rm kustomize
+          # "kustomize edit set image" rewrites the newTag line in kustomization.yaml.
+          # kustomize is preinstalled on GitHub's Ubuntu runners, so nothing is downloaded and executed here.
+          kustomize edit set image belastingbuddy=${{ needs.build.outputs.image }}:${{ needs.build.outputs.tag }}
       - name: Commit and push
         run: |
           git config user.name  "github-actions[bot]"
