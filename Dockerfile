@@ -35,5 +35,6 @@ COPY --from=build /app/out /usr/share/nginx/html
 EXPOSE 8080
 
 # Docker will mark the container "unhealthy" if this fails (docker ps shows it).
+# JSON ("exec") form; `|| exit 1` maps any wget error to 1, the code Docker reads as unhealthy.
 HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
-  CMD wget -q --spider http://127.0.0.1:8080/healthz || exit 1
+  CMD ["sh", "-c", "wget -q --spider http://127.0.0.1:8080/healthz || exit 1"]
