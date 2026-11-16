@@ -1,0 +1,40 @@
+# SRE CONCEPT: alert on symptoms users feel (site down, errors), not on every CPU blip.
+# SLO we promise: 99.9% availability over 30 days  => error budget = 0.1% (~43 min / month).
+groups:
+  - name: belastingbuddy-availability
+    rules:
+      # SLI (what we measure): fraction of successful probes
+      - record: sli:availability:ratio_5m
+        expr: avg_over_time(probe_success{job="blackbox-http"}[5m])
+
+      - alert: SiteDown
+        expr: probe_success{job="blackbox-http"} == 0
+        for: 1m                      # must be true for 1 minute -> avoids flapping alerts
+        labels: { severity: critical }
+        annotations:
+          summary: "{{ $labels.instance }} is not responding"
+          runbook: "docs/LEARNING.md#runbook-site-down"
+
+      # Burn-rate idea: if we fail >1.44% of probes for 1h we burn the monthly budget ~14x too fast
+      - alert: ErrorBudgetBurnFast
+        expr: (1 - avg_over_time(probe_success{job="blackbox-http"}[1h])) > (14.4 * 0.001)
+        for: 5m
+        labels: { severity: critical }
+        annotations:
+          summary: "Burning the 99.9% error budget 14x too fast"
+
+      - alert: SlowResponses
+        expr: probe_duration_seconds{job="blackbox-http"} > 1
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: "{{ $labels.instance }} takes more than 1s to answer"
+
+  - name: belastingbuddy-nginx
+    rules:
+      - alert: NginxExporterDown
+        expr: nginx_up == 0 or absent(nginx_up)
+        for: 2m
+        labels: { severity: warning }
+        annotations:
+          summary: "Cannot read nginx metrics"
