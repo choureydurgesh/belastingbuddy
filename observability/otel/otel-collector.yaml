@@ -1,0 +1,30 @@
+# OPENTELEMETRY CONCEPT: the Collector is a pipeline:  receivers -> processors -> exporters
+#   receivers  = how data gets IN   (apps send OTLP)
+#   processors = what we do to it   (batch, limit memory)
+#   exporters  = where it goes OUT  (Prometheus, logs, later Jaeger/Tempo/Grafana Cloud)
+receivers:
+  otlp:
+    protocols:
+      grpc: { endpoint: 0.0.0.0:4317 }
+      http: { endpoint: 0.0.0.0:4318 }
+
+processors:
+  memory_limiter:            # protects the collector from running out of RAM
+    check_interval: 1s
+    limit_mib: 200
+  batch: {}                  # groups data into batches -> fewer network calls
+
+exporters:
+  debug:                     # prints received data to the collector log (great for learning)
+    verbosity: detailed
+  prometheus:                # exposes OTel metrics on :8889 so Prometheus can scrape them
+    endpoint: 0.0.0.0:8889
+
+service:
+  telemetry:
+    metrics:
+      address: 0.0.0.0:8888  # the collector's own health metrics
+  pipelines:
+    metrics: { receivers: [otlp], processors: [memory_limiter, batch], exporters: [prometheus, debug] }
+    traces:  { receivers: [otlp], processors: [memory_limiter, batch], exporters: [debug] }
+    logs:    { receivers: [otlp], processors: [memory_limiter, batch], exporters: [debug] }

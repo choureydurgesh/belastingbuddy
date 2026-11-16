@@ -1,0 +1,12 @@
+# PROD overlay. The "images" block below is rewritten automatically by the GitHub Actions
+# pipeline (gitops-update job) on every successful build. Argo CD then deploys it.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: belastingbuddy
+resources:
+  - ../../base
+  - namespace.yaml
+images:
+  - name: belastingbuddy
+    newName: ghcr.io/choureydurgesh/belastingbuddy
+    newTag: latest   # replaced by CI with the git SHA

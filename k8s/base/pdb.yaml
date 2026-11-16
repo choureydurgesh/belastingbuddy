@@ -1,0 +1,9 @@
+# PodDisruptionBudget: during node maintenance, never take down the last healthy pod.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: belastingbuddy
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels: { app: belastingbuddy }

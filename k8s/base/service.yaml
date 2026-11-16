@@ -1,0 +1,12 @@
+# A Service = stable internal address + load balancing across all matching pods.
+# Pods come and go (new IPs each time); the Service name never changes.
+apiVersion: v1
+kind: Service
+metadata:
+  name: belastingbuddy
+  labels: { app: belastingbuddy }
+spec:
+  selector: { app: belastingbuddy }
+  ports:
+    - { name: http, port: 80, targetPort: http }
+    - { name: metrics, port: 9113, targetPort: metrics }   # scraped by Prometheus (see ServiceMonitor)

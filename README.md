@@ -4,6 +4,13 @@ A simple guide for expats (and Dutch residents) to the Dutch income tax return, 
 
 ## Run it on your computer
 
+First get the code:
+
+```bash
+git clone https://github.com/choureydurgesh/belastingbuddy.git
+cd belastingbuddy
+```
+
 You need **Node.js 20 or newer** (download from nodejs.org).
 
 ```bash
@@ -44,3 +51,13 @@ Other commands:
 - Also covered: business turnover and costs, investment deduction (KIA), non-qualifying non-residents (credits by country and insurance), reading WOZ, mortgage, bank and broker statements.
 - Not included yet: 2027 rules (waiting for the final numbers), other business deductions (like the self-employed pension reserve).
 - Server: `functions/api/` (Cloudflare Pages Functions) with a D1 database in the EU (`schema.sql`). Only feedback and reminder emails are stored.
+
+## DevOps showcase
+
+Besides the app, this repo is a hands-on DevOps portfolio: Docker, GitHub Actions CI/CD, Kubernetes, Argo CD (GitOps),
+Terraform, Ansible and SRE/observability (Prometheus, Grafana, OpenTelemetry).
+Start with **[docs/LEARNING.md](docs/LEARNING.md)** – every file has simple comments explaining the concept.
+
+```bash
+make up    # app + Prometheus + Grafana + OpenTelemetry locally  ->  http://localhost:8080 / :9090 / :3000
+```

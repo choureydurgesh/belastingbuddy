@@ -1,0 +1,31 @@
+# OpenTelemetry Collector on Kubernetes (official Helm chart), managed by Argo CD.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: otel-collector
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://open-telemetry.github.io/opentelemetry-helm-charts
+    chart: opentelemetry-collector
+    targetRevision: 0.108.0
+    helm:
+      values: |
+        mode: deployment
+        image:
+          repository: otel/opentelemetry-collector-contrib
+        config:
+          exporters:
+            debug: { verbosity: basic }
+          service:
+            pipelines:
+              traces:  { receivers: [otlp], processors: [batch], exporters: [debug] }
+              metrics: { receivers: [otlp], processors: [batch], exporters: [debug] }
+              logs:    { receivers: [otlp], processors: [batch], exporters: [debug] }
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+    syncOptions: [CreateNamespace=true]
