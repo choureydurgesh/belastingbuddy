@@ -1,5 +1,5 @@
 # Shortcuts so you don't have to remember long commands. Run `make help`.
-.PHONY: help up down logs trace kind-up kind-load k8s-dev argocd-install argocd-apps tf-plan ansible
+.PHONY: help up down logs trace kind-up kind-load k8s-dev argocd-install argocd-apps tf-plan ansible runner-up runner-status runner-logs runner-down
 help:            ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*##' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-16s %s\n", $$1, $$2}'
 up:              ## Run app + Prometheus + Grafana + OTel locally (Docker Compose)
@@ -25,3 +25,11 @@ tf-plan:         ## Preview cloud infrastructure
 	cd terraform && terraform init && terraform plan
 ansible:         ## Configure the server and deploy
 	cd ansible && ansible-playbook site.yml
+runner-up:       ## Start a self-hosted GitHub Actions runner on this laptop (Docker, ephemeral)
+	./scripts/runner.sh up
+runner-status:   ## Show the self-hosted runner (container + GitHub)
+	./scripts/runner.sh status
+runner-logs:     ## Follow the self-hosted runner's log
+	./scripts/runner.sh logs
+runner-down:     ## Stop the self-hosted runner and remove it from GitHub
+	./scripts/runner.sh down

@@ -56,6 +56,20 @@ Compare with the course repo: `ci.yml` uses a **matrix** + **reusable workflow**
 - **Learn:** a reusable workflow can't ask for more permissions than its caller grants – if a called job needs e.g. `pull-requests: read`, the calling job in `pipeline.yml` must grant it too, or the run fails at startup.
 - Every step has a `name:`, so the Actions log reads like a checklist instead of showing pinned action SHAs.
 
+## Step 3b – Self-hosted runner on your laptop (showcase)
+All normal jobs run on **GitHub-hosted** runners (`runs-on: ubuntu-latest`). To show the other option, `self-hosted-demo.yml` runs lint, tests and build on a runner on **your laptop**:
+```bash
+make runner-up                          # ephemeral runner in a Linux container (label: laptop)
+gh workflow run self-hosted-demo.yml    # or Actions -> "Self-hosted runner demo" -> Run workflow
+gh run watch                            # first step prints the laptop's hostname and CPU
+make runner-down                        # stop it and remove it from GitHub
+```
+- **Labels decide where a job runs:** the demo asks for `[self-hosted, linux, laptop]`; everything else asks for `ubuntu-latest`, so normal CI never lands on the laptop.
+- **Public repo = be careful:** a self-hosted runner executes whatever the workflow says. The demo is manual-only (no `pull_request`), so code from forks can't run on your machine.
+- **Isolation:** the runner runs in Docker with no host folders, no Docker socket, non-root, 2 CPUs / 4 GB.
+- **Ephemeral:** it takes one job, then GitHub removes it and the container exits, so no state leaks between jobs. Run `make runner-up` again for the next one.
+- **Hosted vs self-hosted:** hosted = clean VM per job, no maintenance, billed minutes on private repos. Self-hosted = your hardware, network and tools (e.g. reach a private network), but you patch, secure and keep it online. If the laptop is off, the job waits in the queue.
+
 ## Step 4 – Kubernetes (local with kind)
 Works on Intel and Apple Silicon Macs: the image is multi-arch, so each node pulls its own CPU type.
 ```bash
