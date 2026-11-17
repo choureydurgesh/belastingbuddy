@@ -33,6 +33,9 @@ jobs:
           echo "tag=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
 
       # Third-party actions are pinned to a full commit SHA (a tag can be moved, a SHA can't)
+      # QEMU emulates arm64 on this amd64 runner (only the small nginx stage needs it, see Dockerfile)
+      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
+
       - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
 
       - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
@@ -45,6 +48,8 @@ jobs:
         with:
           context: .
           push: true
+          # One tag, two images: amd64 for cloud VMs, arm64 for Apple Silicon (kind) and ARM servers
+          platforms: linux/amd64,linux/arm64
           tags: |
             ${{ steps.vars.outputs.image }}:${{ steps.vars.outputs.tag }}
             ${{ steps.vars.outputs.image }}:latest
