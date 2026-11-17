@@ -1,5 +1,9 @@
-# Reusable workflow: build the Docker image and push it to GitHub Container Registry (GHCR).
-# GHCR needs NO extra secrets - the built-in GITHUB_TOKEN is enough (unlike Docker Hub).
+# Reusable workflow: build the Docker image and push it to GitHub Container Registry (GHCR)
+# and, when configured, to Docker Hub as well.
+#   GHCR       : logs in with the built-in GITHUB_TOKEN (no stored secret). Kubernetes and
+#                Ansible deploy from here.
+#   Docker Hub : needs repo variable DOCKERHUB_USERNAME + secret DOCKERHUB_TOKEN (a Docker Hub
+#                access token with Read & Write). Without them this part is skipped.
 name: Docker build & push
 
 on:
@@ -24,13 +28,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Work out image name and tag
+      - name: Work out image names and tags
         id: vars
+        env:
+          DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
         run: |
           # Registry names must be lowercase, ${VAR,,} lower-cases in bash
-          echo "image=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+          image="ghcr.io/${GITHUB_REPOSITORY,,}"
           # Tag = commit SHA, so every image maps to exactly one commit (traceable, rollback-able)
-          echo "tag=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+          tag="${GITHUB_SHA::7}"
+          echo "image=$image" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          tags="$image:$tag,$image:latest"
+          if [ -n "$DOCKERHUB_USERNAME" ]; then
+            hub="docker.io/${DOCKERHUB_USERNAME,,}/${GITHUB_REPOSITORY#*/}"
+            tags="$tags,${hub,,}:$tag,${hub,,}:latest"
+          fi
+          echo "tags=$tags" >> "$GITHUB_OUTPUT"
 
       # Third-party actions are pinned to a full commit SHA (a tag can be moved, a SHA can't)
       # QEMU emulates arm64 on this amd64 runner (only the small nginx stage needs it, see Dockerfile)
@@ -44,14 +58,20 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # Also gives this job Docker Hub's higher pull limit for the node/nginx base images
+      - name: Log in to Docker Hub
+        if: vars.DOCKERHUB_USERNAME != ''
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
         with:
           context: .
           push: true
           # One tag, two images: amd64 for cloud VMs, arm64 for Apple Silicon (kind) and ARM servers
           platforms: linux/amd64,linux/arm64
-          tags: |
-            ${{ steps.vars.outputs.image }}:${{ steps.vars.outputs.tag }}
-            ${{ steps.vars.outputs.image }}:latest
+          tags: ${{ steps.vars.outputs.tags }}
           cache-from: type=gha         # reuse layers from previous runs
           cache-to: type=gha,mode=max
