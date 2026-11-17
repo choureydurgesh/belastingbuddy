@@ -99,7 +99,7 @@ jobs:
       # Fails on any HIGH/CRITICAL advisory except those listed, with a reason and a
       # review date, in .npm-audit-allowlist.json (see scripts/audit-gate.mjs)
       - name: Audit npm packages (high and critical, documented exceptions only)
-        run: node scripts/audit-gate.mjs
+        run: npm run audit:gate
 
   # ---- 6. Validate the infrastructure code too (no cloud credentials needed) ----
   iac-validate:

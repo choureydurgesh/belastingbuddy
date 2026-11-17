@@ -5,16 +5,22 @@
 //   - any HIGH/CRITICAL advisory is not on the allowlist
 //   - an allowlisted advisory is past its review_by date (re-check it)
 //   - an allowlisted advisory no longer appears (remove the exception)
-// Usage: node scripts/audit-gate.mjs
+// Usage: npm run audit:gate
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 
 const BLOCKING = new Set(["high", "critical"]);
 const allow = JSON.parse(readFileSync(new URL("../.npm-audit-allowlist.json", import.meta.url), "utf8")).advisories;
 
+// Run npm by absolute path (the npm that started this script), not by searching PATH
+const npmCli = process.env.npm_execpath;
+if (!npmCli) {
+  console.error("Run this through npm: npm run audit:gate");
+  process.exit(2);
+}
 let raw;
 try {
-  raw = execFileSync("npm", ["audit", "--json"], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+  raw = execFileSync(process.execPath, [npmCli, "audit", "--json"], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
 } catch (err) {
   raw = err.stdout; // npm audit exits non-zero when it finds anything; the JSON is still on stdout
 }

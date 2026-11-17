@@ -8,6 +8,7 @@
     "start": "npx serve out",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
+    "audit:gate": "node scripts/audit-gate.mjs",
     "test": "tsx --test src/lib/**/*.test.ts src/lib/*.test.ts",
     "deploy": "next build && wrangler pages deploy out --project-name belastingbuddy"
   },
