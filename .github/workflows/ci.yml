@@ -24,25 +24,33 @@ jobs:
       matrix:
         node-version: [20, 22]     # README says "Node 20 or newer", so we prove both work
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
       # `npm ci` = clean, reproducible install of the exact versions in package-lock.json.
       # --ignore-scripts: dependencies can't run their own install scripts on the runner (supply-chain safety).
-      - run: npm ci --ignore-scripts
-      - run: npm run typecheck     # type check (catches bugs without running)
-      - run: npm test              # the tax maths tests
-      - run: npm run build         # make sure the static export still builds
+      - name: Install dependencies (lockfile, no install scripts)
+        run: npm ci --ignore-scripts
+      - name: Type-check
+        run: npm run typecheck     # type check (catches bugs without running)
+      - name: Run unit tests
+        run: npm test              # the tax maths tests
+      - name: Build the static site
+        run: npm run build         # make sure the static export still builds
 
   # ---- 2. Lint the Dockerfile (best-practice checker) ----
   docker-lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out code
+        uses: actions/checkout@v4
       # Third-party actions are pinned to a full commit SHA: a tag can be moved to other code, a SHA can't.
-      - uses: hadolint/hadolint-action@06be81baf89a55ffd0e24b8f04a4185738dd3387 # v3.5.0
+      - name: Lint the Dockerfile (hadolint)
+        uses: hadolint/hadolint-action@06be81baf89a55ffd0e24b8f04a4185738dd3387 # v3.5.0
         with:
           dockerfile: Dockerfile
           failure-threshold: warning
@@ -54,10 +62,12 @@ jobs:
       contents: read
       pull-requests: read      # on PRs gitleaks lists the PR's commits through the API
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out full git history
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0         # gitleaks must see full history, not just the last commit
-      - uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
+      - name: Scan for leaked secrets (gitleaks)
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -65,18 +75,24 @@ jobs:
   dependency-scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
         with: { node-version: 22, cache: npm }
-      - run: npm ci --ignore-scripts
-      - run: npm audit --audit-level=high    # fails only on HIGH / CRITICAL issues
+      - name: Install dependencies (lockfile, no install scripts)
+        run: npm ci --ignore-scripts
+      - name: Audit npm packages (high and critical)
+        run: npm audit --audit-level=high    # fails only on HIGH / CRITICAL issues
 
   # ---- 5. Validate the infrastructure code too (no cloud credentials needed) ----
   iac-validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
       - name: Terraform fmt + validate
         working-directory: terraform
         run: |
