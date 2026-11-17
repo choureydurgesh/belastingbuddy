@@ -29,6 +29,11 @@ jobs:
   ci:
     uses: ./.github/workflows/ci.yml
     secrets: inherit
+    # A called workflow can't ask for more than its caller grants:
+    # ci.yml's secrets-scan job needs pull-requests: read (gitleaks)
+    permissions:
+      contents: read
+      pull-requests: read
 
   build:
     needs: [ci]                # "needs" = run only after ci succeeded
