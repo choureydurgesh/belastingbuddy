@@ -59,7 +59,8 @@ jobs:
     permissions:
       contents: write          # needed to push the commit
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out code
+        uses: actions/checkout@v4
       - name: Set new image tag in the prod overlay
         working-directory: k8s/overlays/prod
         run: |
