@@ -26,6 +26,9 @@ Other commands:
 | Command | What it does |
 |---|---|
 | `npm test` | Checks the tax maths |
+| `npm run lint` | Checks the code with ESLint (Next.js, React, React Hooks, accessibility and TypeScript rules) |
+| `npm run typecheck` | Checks the TypeScript types |
+| `npm run audit:gate` | Checks dependencies for known high/critical vulnerabilities (exceptions in `.npm-audit-allowlist.json`) |
 | `npm run build` | Makes the final site in the `out` folder |
 | `npm run deploy` | Builds and uploads to Cloudflare Pages (log in first with `npx wrangler login`) |
 
@@ -57,6 +60,10 @@ Other commands:
 Besides the app, this repo is a hands-on DevOps portfolio: Docker, GitHub Actions CI/CD, Kubernetes, Argo CD (GitOps),
 Terraform, Ansible and SRE/observability (Prometheus, Grafana, OpenTelemetry).
 Start with **[docs/LEARNING.md](docs/LEARNING.md)** – every file has simple comments explaining the concept.
+
+Container images (amd64 + arm64), built and scanned on every merge to `main`:
+`ghcr.io/choureydurgesh/belastingbuddy` (used for deploys) and a copy on Docker Hub, `durgeshchourey/belastingbuddy`.
+The images contain the frontend only; the `/api` functions run on Cloudflare Pages.
 
 ```bash
 make up    # app + Prometheus + Grafana + OpenTelemetry locally  ->  http://localhost:8080 / :9090 / :3000

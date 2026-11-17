@@ -20,6 +20,7 @@ export function HomePage() {
   const [hasSaved, setHasSaved] = useState(false);
   useEffect(() => {
     const s = loadSaved();
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reads browser storage after mount; the static HTML can't know it (avoids a hydration mismatch)
     setHasSaved(!!s && Object.keys(s.answers).length > 0);
   }, []);
 

@@ -42,7 +42,21 @@ jobs:
       - name: Build the static site
         run: npm run build         # make sure the static export still builds
 
-  # ---- 2. Lint the Dockerfile (best-practice checker) ----
+  # ---- 2. Lint the application code (ESLint: Next.js, React, React Hooks, a11y, TypeScript rules) ----
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - name: Install dependencies (lockfile, no install scripts)
+        run: npm ci --ignore-scripts
+      - name: Lint the code (ESLint)
+        run: npm run lint          # errors fail the job; warnings are shown but don't
+
+  # ---- 3. Lint the Dockerfile (best-practice checker) ----
   docker-lint:
     runs-on: ubuntu-latest
     steps:
@@ -55,7 +69,7 @@ jobs:
           dockerfile: Dockerfile
           failure-threshold: warning
 
-  # ---- 3. Look for accidentally committed passwords / API keys ----
+  # ---- 4. Look for accidentally committed passwords / API keys ----
   secrets-scan:
     runs-on: ubuntu-latest
     permissions:
@@ -71,7 +85,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # ---- 4. Known-vulnerable npm packages ----
+  # ---- 5. Known-vulnerable npm packages ----
   dependency-scan:
     runs-on: ubuntu-latest
     steps:
@@ -82,10 +96,12 @@ jobs:
         with: { node-version: 22, cache: npm }
       - name: Install dependencies (lockfile, no install scripts)
         run: npm ci --ignore-scripts
-      - name: Audit npm packages (high and critical)
-        run: npm audit --audit-level=high    # fails only on HIGH / CRITICAL issues
+      # Fails on any HIGH/CRITICAL advisory except those listed, with a reason and a
+      # review date, in .npm-audit-allowlist.json (see scripts/audit-gate.mjs)
+      - name: Audit npm packages (high and critical, documented exceptions only)
+        run: npm run audit:gate
 
-  # ---- 5. Validate the infrastructure code too (no cloud credentials needed) ----
+  # ---- 6. Validate the infrastructure code too (no cloud credentials needed) ----
   iac-validate:
     runs-on: ubuntu-latest
     steps:
