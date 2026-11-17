@@ -1,0 +1,50 @@
+# =============================================================================
+# SELF-HOSTED RUNNER DEMO - runs on YOUR laptop instead of GitHub's cloud.
+#   1. make runner-up                       (starts an ephemeral runner in Docker)
+#   2. gh workflow run self-hosted-demo.yml (or Actions -> this workflow -> Run workflow)
+#   3. make runner-down                     (afterwards)
+#
+# Safe by design for a PUBLIC repo:
+#   - manual trigger only (no pull_request), so code from forks never runs on the laptop
+#   - its own label "laptop": the normal jobs ask for ubuntu-latest and never land here
+#   - read-only token, nothing deployed
+# The real CI and Pipeline are unchanged and keep using GitHub-hosted runners.
+# =============================================================================
+name: Self-hosted runner demo
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: self-hosted-demo
+  cancel-in-progress: false
+
+jobs:
+  laptop:
+    # self-hosted + linux + our own label: only the laptop runner matches
+    runs-on: [self-hosted, linux, laptop]
+    timeout-minutes: 15
+    steps:
+      - name: Show where this job runs
+        run: |
+          echo "Runner name : $RUNNER_NAME"
+          echo "Runner OS   : $RUNNER_OS / $RUNNER_ARCH"
+          echo "Hostname    : $(hostname)"
+          echo "CPU cores   : $(nproc)"
+          echo "Kernel      : $(uname -sr)"
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Install dependencies (lockfile, no install scripts)
+        run: npm ci --ignore-scripts
+      - name: Lint the code (ESLint)
+        run: npm run lint
+      - name: Run unit tests
+        run: npm test
+      - name: Build the static site
+        run: npm run build
