@@ -26,6 +26,8 @@ Other commands:
 | Command | What it does |
 |---|---|
 | `npm test` | Checks the tax maths |
+| `npm run lint` | Checks the code with ESLint (Next.js, React, React Hooks, accessibility and TypeScript rules) |
+| `npm run typecheck` | Checks the TypeScript types |
 | `npm run build` | Makes the final site in the `out` folder |
 | `npm run deploy` | Builds and uploads to Cloudflare Pages (log in first with `npx wrangler login`) |
 

@@ -31,7 +31,7 @@ the app is simple, so you can focus on the DevOps tools. Work through the steps 
 git clone https://github.com/choureydurgesh/belastingbuddy.git
 cd belastingbuddy
 npm ci                 # exact versions from the committed package-lock.json (reproducible)
-npm test && npm run build
+npm run lint && npm test && npm run build
 ```
 
 ## Step 1–2 – Docker & Compose (everything local, ~10 min)
@@ -46,7 +46,9 @@ make up                # = docker compose up -d --build
 
 ## Step 3 – GitHub Actions
 Compare with the course repo: `ci.yml` uses a **matrix** + **reusable workflow** (`workflow_call`), `pipeline.yml` chains jobs with **needs**, uses **concurrency**, **permissions** and **GITHUB_TOKEN**.
-1. Push a branch, open a PR → `CI` runs (tests, hadolint, gitleaks, npm audit, terraform/k8s/ansible validation).
+1. Push a branch, open a PR → `CI` runs (tests, ESLint, hadolint, gitleaks, npm audit gate, terraform/k8s/ansible validation).
+   - **Layers of static analysis:** `tsc` (types) and ESLint (`npm run lint`, React/Next.js rules) run on every PR and on your laptop; SonarCloud adds deeper analysis and a quality gate.
+   - **npm audit gate** (`scripts/audit-gate.mjs`): fails on any high/critical advisory except those listed in `.npm-audit-allowlist.json` with a reason and a review date. It also fails once a review date passes or a listed advisory disappears, so exceptions can't be forgotten.
 2. Merge to `main` → `Pipeline` runs: CI → build an **amd64 + arm64** image → push to `ghcr.io/choureydurgesh/belastingbuddy:<sha>` (and Docker Hub, see 4) → Trivy scan → commit new tag to `k8s/overlays/prod`. About 2 minutes.
 3. After the first push: GitHub → Packages → make the package **public** (so Kubernetes/Ansible can pull without credentials).
 4. Optional Docker Hub copy: repo Settings → Secrets and variables → Actions → **Variables** `DOCKERHUB_USERNAME` (your *Docker Hub* username, not GitHub's) and **Secrets** `DOCKERHUB_TOKEN` (Docker Hub access token, Read & Write). Without them the Docker Hub push is skipped.
@@ -119,7 +121,7 @@ make trace           # sends a fake trace; you will see it printed by the collec
 - **Why GitOps?** Git is the audit log and rollback button; nobody needs cluster credentials in CI.
 - **Why GHCR + SHA tags?** GHCR logs in with the per-run `GITHUB_TOKEN`, so there is no long-lived registry password; every running image maps to one commit; no mutable `latest` in prod (prod overlay pins the SHA). The same image is also published to Docker Hub (identical digest) for visibility.
 - **Why multi-arch?** One tag holds amd64 and arm64 images, so it runs on cloud VMs, ARM servers and Apple Silicon. The Node build runs natively (`--platform=$BUILDPLATFORM`); only the small nginx stage is emulated.
-- **Security (shift-left):** hadolint, gitleaks, npm audit, Trivy, non-root container, dropped capabilities, least-privilege `permissions:`, IMDSv2 + encrypted disk in Terraform.
+- **Security (shift-left):** ESLint, hadolint, gitleaks, npm audit gate with documented exceptions, Trivy, non-root container, dropped capabilities, least-privilege `permissions:`, IMDSv2 + encrypted disk in Terraform.
 - **Reliability:** 2 replicas, rolling update with maxUnavailable 0, probes, PDB, HPA, SLO-based alerts.
 - **Trade-offs you made:** static site on Cloudflare Pages is cheaper/simpler in production; this stack is a *learning* platform. Saying this shows judgement.
 - **Next steps:** Loki for logs, real OTel instrumentation, Terraform remote state + OIDC auth, Argo CD image updater, sealed secrets.
