@@ -58,6 +58,10 @@ Besides the app, this repo is a hands-on DevOps portfolio: Docker, GitHub Action
 Terraform, Ansible and SRE/observability (Prometheus, Grafana, OpenTelemetry).
 Start with **[docs/LEARNING.md](docs/LEARNING.md)** – every file has simple comments explaining the concept.
 
+Container images (amd64 + arm64), built and scanned on every merge to `main`:
+`ghcr.io/choureydurgesh/belastingbuddy` (used for deploys) and a copy on Docker Hub, `durgeshchourey/belastingbuddy`.
+The images contain the frontend only; the `/api` functions run on Cloudflare Pages.
+
 ```bash
 make up    # app + Prometheus + Grafana + OpenTelemetry locally  ->  http://localhost:8080 / :9090 / :3000
 ```
