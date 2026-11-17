@@ -41,6 +41,7 @@ export function ReturnApp() {
         Object.keys(saved.answers).length > 0 && saved.answers.jaaropgaaf === undefined
           ? { ...saved.answers, jaaropgaaf: "skipped" }
           : saved.answers;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reads browser storage after mount; the static HTML can't know it (avoids a hydration mismatch)
       setAnswers(a);
       if (Object.keys(a).length > 0 && !nextQuestion(a)) setView("results");
     }

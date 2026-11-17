@@ -36,7 +36,9 @@ export function Results({
   const refund = estimate.result >= 0;
   const deadline = new Date(RULES.deadline);
   const deadlineText = deadline.toLocaleDateString(lang === "nl" ? "nl-NL" : "en-GB", { day: "numeric", month: "long", year: "numeric" });
-  const pastDeadline = Date.now() > deadline.getTime();
+  // Read the clock once when the results first show, not on every render
+  const [now] = useState(() => Date.now());
+  const pastDeadline = now > deadline.getTime();
 
   return (
     <div className="results">

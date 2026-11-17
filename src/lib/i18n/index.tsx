@@ -63,6 +63,7 @@ export function LangProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       const saved = window.localStorage.getItem(KEY);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reads browser storage after mount; the static HTML can't know it (avoids a hydration mismatch)
       if (saved === "nl" || saved === "en") setLangState(saved);
     } catch {
       // storage blocked: stay in English
