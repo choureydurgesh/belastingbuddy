@@ -6,7 +6,10 @@
 # =============================================================================
 
 # ---------- Stage 1: build the static site ----------
-FROM node:22-alpine AS build
+# --platform=$BUILDPLATFORM: run this stage natively on the build machine, even when
+# building an arm64 image on an amd64 runner. Its output (static HTML/JS) is the same
+# for every CPU, so there is no need to emulate Node.
+FROM --platform=$BUILDPLATFORM node:22-alpine AS build
 WORKDIR /app
 
 # Copy ONLY the dependency files first. Docker caches each step ("layer"),
