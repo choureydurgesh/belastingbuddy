@@ -24,9 +24,15 @@ RUN npm run build
 # ---------- Stage 2: serve it with nginx ----------
 # "nginx-unprivileged" runs as a NON-root user on port 8080 (required by many
 # Kubernetes security policies, and good practice anyway).
-# 1.30 = nginx's current *stable* line. The minor tag is rebuilt when Alpine ships
-# security fixes, so rebuilding the image picks them up (Trivy checks it in CI).
+# 1.30 = nginx's current *stable* line.
 FROM nginxinc/nginx-unprivileged:1.30-alpine AS runtime
+
+# The base image is only rebuilt every few weeks, so Alpine security fixes released
+# since then are missing (Trivy flags them). Install them on every build, then switch
+# back to the image's non-root user (uid 101).
+USER root
+RUN apk upgrade --no-cache
+USER 101
 
 # Our own nginx config: caching headers, /healthz and /stub_status (metrics).
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
