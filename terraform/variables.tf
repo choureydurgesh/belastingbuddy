@@ -17,9 +17,13 @@ variable "ssh_public_key" {
 }
 
 variable "allowed_ssh_cidr" {
-  description = "Who may SSH in. Use your own IP like 203.0.113.7/32. Never leave 0.0.0.0/0 in real life!"
+  description = "Who may SSH in and open Grafana: your own IP, like 203.0.113.7/32"
   type        = string
-  default     = "0.0.0.0/0"
+  # No default on purpose: it used to be 0.0.0.0/0 (SSH open to the whole internet, Trivy AWS-0107)
+  validation {
+    condition     = can(cidrhost(var.allowed_ssh_cidr, 0)) && var.allowed_ssh_cidr != "0.0.0.0/0"
+    error_message = "Set allowed_ssh_cidr to your own IP range (e.g. 203.0.113.7/32), not 0.0.0.0/0."
+  }
 }
 
 variable "ssh_private_key_path" {

@@ -130,3 +130,22 @@ jobs:
           # Exact version, wheels only (no setup.py code runs). The full package includes community.general (ufw module).
           pip install --only-binary :all: ansible==14.5.0
           ansible-playbook -i localhost, --syntax-check ansible/site.yml
+
+  # ---- 7. Misconfiguration scan of the infrastructure code (Trivy "config" mode) ----
+  # Kubernetes manifests, Terraform and the Dockerfile are checked against security rules,
+  # e.g. "container may run as root" or "SSH open to the whole internet".
+  # Reviewed exceptions are inline `trivy:ignore:<ID>` comments with a reason (terraform/main.tf).
+  iac-security:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: Scan Kubernetes, Terraform and Dockerfile for misconfigurations (Trivy)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: config
+          scan-ref: .
+          skip-dirs: node_modules,.next,out
+          severity: CRITICAL,HIGH
+          exit-code: "1"             # fail on any HIGH/CRITICAL misconfiguration
+

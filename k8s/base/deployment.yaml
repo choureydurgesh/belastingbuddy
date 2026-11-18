@@ -16,6 +16,11 @@ spec:
     metadata:
       labels: { app: belastingbuddy }
     spec:
+      # Pod-wide hardening: never run as root, and use the container runtime's default
+      # seccomp profile (blocks rarely-needed, risky kernel calls). Found by Trivy (KSV-0118).
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile: { type: RuntimeDefault }
       containers:
         # ---- main container: the website ----
         - name: web
@@ -37,8 +42,11 @@ spec:
           securityContext:                     # run as hardened as possible
             runAsNonRoot: true
             allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: false      # nginx needs to write temp files; use emptyDir if you tighten this
+            readOnlyRootFilesystem: true       # nothing can change the image's files at runtime (Trivy KSV-0014)
             capabilities: { drop: [ALL] }
+          # ...except /tmp, where nginx-unprivileged writes its pid file and temp files
+          volumeMounts:
+            - { name: tmp, mountPath: /tmp }
         # ---- sidecar container: turns nginx stats into Prometheus metrics (same pod, shares localhost) ----
         - name: nginx-exporter
           image: nginx/nginx-prometheus-exporter:1.3
@@ -50,4 +58,8 @@ spec:
           securityContext:
             runAsNonRoot: true
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true       # the exporter never writes to disk
             capabilities: { drop: [ALL] }
+      volumes:
+        - name: tmp
+          emptyDir: { sizeLimit: 64Mi }        # scratch space that lives as long as the pod
