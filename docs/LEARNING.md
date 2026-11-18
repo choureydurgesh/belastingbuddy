@@ -94,7 +94,7 @@ docker run --rm -v "$PWD":/src:ro aquasec/trivy:0.70.0 config --severity HIGH,CR
 # ZAP: build + start the app, then scan it (report in ./zap/zap-report.html)
 docker build -t belastingbuddy:dast . && docker network create dast
 docker run -d --rm --name app --network dast --read-only --tmpfs /tmp belastingbuddy:dast
-mkdir -p zap && cp .zap/rules.tsv zap/ && chmod -R a+rwX zap
+mkdir -p zap && cp .zap/rules.tsv zap/ && chmod 777 zap   # local only; CI gives the folder to ZAP's uid 1000 instead
 docker run --rm --network dast -v "$PWD/zap:/zap/wrk:rw" ghcr.io/zaproxy/zaproxy:stable \
   zap-baseline.py -t http://app:8080 -c rules.tsv -r zap-report.html
 docker rm -f app && docker network rm dast
