@@ -7,8 +7,11 @@
 #   ./scripts/runner.sh logs     follow the runner's log
 #   ./scripts/runner.sh down     stop it and remove its registration from GitHub
 #
-# Why a container: the jobs expect Linux (like ubuntu-latest), and the job can't see your
-# files - nothing from the Mac is mounted and there is no Docker socket inside.
+# Why a container: the jobs expect Linux (like ubuntu-latest). Docker Desktop runs a small
+# Linux VM on the Mac; this container (Ubuntu 24.04, arm64) runs in that VM and shares its
+# kernel. The job can't see your files: nothing from the Mac is mounted and there is no
+# Docker socket inside. Note: the image's "runner" user has passwordless sudo (workflows
+# often need apt-get), so the protection is the container boundary, not the user.
 # Why ephemeral: the runner takes ONE job, then GitHub removes it and the container exits,
 # so nothing from one job is left for the next. Run `up` again for another job.
 # Needs: Docker running, and `gh` logged in with admin rights on the repo.
@@ -61,6 +64,6 @@ case "${1:-}" in
     if [ -n "$id" ]; then gh api -X DELETE "repos/$REPO/actions/runners/$id" && echo "runner '$NAME' removed from GitHub"; else echo "no registration left on GitHub"; fi
     ;;
   *)
-    sed -n '2,15p' "$0" | sed 's/^# \{0,1\}//'; exit 1
+    sed -n '2,17p' "$0" | sed 's/^# \{0,1\}//'; exit 1
     ;;
 esac

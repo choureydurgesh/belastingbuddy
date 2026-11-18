@@ -66,7 +66,28 @@ make runner-down                        # stop it and remove it from GitHub
 ```
 - **Labels decide where a job runs:** the demo asks for `[self-hosted, linux, laptop]`; everything else asks for `ubuntu-latest`, so normal CI never lands on the laptop.
 - **Public repo = be careful:** a self-hosted runner executes whatever the workflow says. The demo is manual-only (no `pull_request`), so code from forks can't run on your machine.
-- **Isolation:** the runner runs in Docker with no host folders, no Docker socket, non-root, 2 CPUs / 4 GB.
+- **Isolation:** the runner runs in Docker with no host folders, no Docker socket, not privileged, 2 CPUs / 4 GB. The image's `runner` user has passwordless `sudo` (workflows often need `apt-get`), so the protection is the **container boundary**, not the user account.
+- **How a Linux container runs on a Mac:** macOS can't run Linux containers itself, so Docker Desktop starts a small Linux VM (`docker info` shows kernel `…-linuxkit`). Containers run inside that VM and share its kernel. The image `ghcr.io/actions/actions-runner` is a multi-arch index; on an M-series Mac Docker pulls the `linux/arm64` variant (Ubuntu 24.04 + the runner software in `/home/runner`).
+
+**Do it by hand once** (what `make runner-up` automates):
+```bash
+# 1. Token: GitHub -> Settings -> Actions -> Runners -> New self-hosted runner -> Linux, ARM64 -> copy the token
+# 2. A Linux "machine": a throwaway container from the official image
+docker run -it --rm --name bb-runner --cpus 2 --memory 4g ghcr.io/actions/actions-runner:2.338.2 bash
+#    inside: whoami (runner), uname -m (aarch64), ls (config.sh run.sh ...), ls /Users (not found: Mac files invisible)
+# 3. Register and start
+./config.sh --url https://github.com/choureydurgesh/belastingbuddy --token <TOKEN> --name laptop-demo --labels laptop --ephemeral --unattended
+./run.sh                                # "Listening for Jobs"; Settings -> Runners shows laptop-demo Idle
+# 4. Second terminal: gh workflow run self-hosted-demo.yml ; gh run watch
+# 5. After the job the ephemeral runner unregisters and exits; `exit` removes the container (--rm)
+```
+| By hand | What `scripts/runner.sh` does instead |
+|---|---|
+| Copy token from the UI | `gh api -X POST repos/…/actions/runners/registration-token` |
+| `docker run -it … bash` | `docker run -d` with the image **pinned by digest** |
+| Token on the command line | Passed as an env variable, `unset` before `run.sh`, never written to disk |
+| Watch the Runners page | Polls the API until the runner is `online` |
+| Remove in the UI | `make runner-down` deletes the container and the registration |
 - **Ephemeral:** it takes one job, then GitHub removes it and the container exits, so no state leaks between jobs. Run `make runner-up` again for the next one.
 - **Hosted vs self-hosted:** hosted = clean VM per job, no maintenance, billed minutes on private repos. Self-hosted = your hardware, network and tools (e.g. reach a private network), but you patch, secure and keep it online. If the laptop is off, the job waits in the queue.
 
