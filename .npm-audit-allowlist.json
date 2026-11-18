@@ -1,14 +1,4 @@
 {
   "_comment": "Advisories the CI audit gate may ignore. Each needs a reason and a review date; scripts/audit-gate.mjs fails once review_by has passed or the advisory is gone, so exceptions can't be forgotten.",
-  "advisories": [
-    {
-      "id": "GHSA-fc5q-39xc-vjpf",
-      "package": "picomatch",
-      "severity": "high",
-      "reason": "ReDoS via crafted glob patterns. Dev-only: pulled in by ESLint and eslint-config-next, which match file globs from our own config, never user input. Not in the deployed image (the nginx stage holds only static files). No patched picomatch release exists yet.",
-      "added": "2026-11-18",
-      "review_by": "2027-01-18",
-      "jira": "BEL-63"
-    }
-  ]
+  "advisories": []
 }
