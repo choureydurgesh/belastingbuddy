@@ -103,7 +103,7 @@ In CI, the HTML report is attached to the run (Actions → run → **Artifacts**
 
 **What the first scans found (and the fixes)**
 - **ZAP, 7 warnings → 0:** missing CSP, Permissions-Policy and CORP/COOP headers (added); nginx version in the `Server` header (`server_tokens off`); and a real bug: **JS/CSS files had no `nosniff` header**. nginx drops server-level `add_header` lines in any `location` that has its own `add_header` (the cache rule for `/_next/static/`). Fixed with `add_header_inherit merge;`. The CSP was tested in a headless browser: PDF and photo reading (pdf.js, tesseract.js from CDNs) still work with no CSP violations.
-- **ZAP, accepted (in `.zap/rules.tsv`):** `unsafe-inline` in the CSP (a static export has inline scripts and no server to add nonces; hashes are a follow-up), no SRI on Google Fonts (fix = self-host the font, BEL-64), no COEP (it would block the CDN scripts).
+- **ZAP, accepted (in `.zap/rules.tsv`):** `unsafe-inline` in the CSP (a static export has inline scripts and no server to add nonces; hashes are a follow-up, BEL-68), no SRI on Google Fonts (fix = self-host the font, BEL-64), no COEP (it would block the CDN scripts).
 - **Trivy, 5 findings → 0:** pods now have a pod-level security context with the default **seccomp** profile and a **read-only root filesystem** (nginx writes only to an `emptyDir` at `/tmp`); SSH no longer defaults to `0.0.0.0/0` (Terraform now rejects it); outbound traffic is limited to ports 80/443. The "egress to any IP" rule stays as a reviewed `trivy:ignore`: registries and apt mirrors sit behind CDNs without fixed IPs.
 
 ## Step 4 – Kubernetes (local with kind)
