@@ -65,6 +65,10 @@ Container images (amd64 + arm64), built and scanned on every merge to `main`:
 `ghcr.io/choureydurgesh/belastingbuddy` (used for deploys) and a copy on Docker Hub, `durgeshchourey/belastingbuddy`.
 The images contain the frontend only; the `/api` functions run on Cloudflare Pages.
 
+DevSecOps checks on every pull request: gitleaks (secrets), npm audit gate (dependencies), ESLint and SonarCloud (SAST),
+Trivy misconfiguration scan (Kubernetes, Terraform, Dockerfile), hadolint, and an OWASP ZAP scan of the running app (DAST);
+then a Trivy CVE scan of every built image. Overview: [LEARNING.md, Step 3c](docs/LEARNING.md#step-3c--devsecops-every-security-check-in-pipeline-order).
+
 ```bash
 make up    # app + Prometheus + Grafana + OpenTelemetry locally  ->  http://localhost:8080 / :9090 / :3000
 ```

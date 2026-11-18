@@ -130,3 +130,57 @@ jobs:
           # Exact version, wheels only (no setup.py code runs). The full package includes community.general (ufw module).
           pip install --only-binary :all: ansible==14.5.0
           ansible-playbook -i localhost, --syntax-check ansible/site.yml
+
+  # ---- 7. Misconfiguration scan of the infrastructure code (Trivy "config" mode) ----
+  # Kubernetes manifests, Terraform and the Dockerfile are checked against security rules,
+  # e.g. "container may run as root" or "SSH open to the whole internet".
+  # Reviewed exceptions are inline `trivy:ignore:<ID>` comments with a reason (terraform/main.tf).
+  iac-security:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: Scan Kubernetes, Terraform and Dockerfile for misconfigurations (Trivy)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: config
+          scan-ref: .
+          skip-dirs: node_modules,.next,out
+          severity: CRITICAL,HIGH
+          exit-code: "1"             # fail on any HIGH/CRITICAL misconfiguration
+
+  # ---- 8. DAST: attack the RUNNING app from the outside (OWASP ZAP baseline scan) ----
+  # SAST reads the code; DAST only sees what a browser sees: headers, cookies, error pages.
+  # The image is built here (not pushed), started like Kubernetes runs it (read-only, only
+  # /tmp writable) and ZAP crawls it and checks every response. Passive scan: no attacks.
+  # Fails on ANY warning; accepted ones are listed with a reason in .zap/rules.tsv.
+  dast:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: Build the image (local only, not pushed)
+        run: docker build -t belastingbuddy:dast .
+      - name: Start the app the way Kubernetes runs it
+        run: |
+          docker network create dast
+          docker run -d --name app --network dast -p 8080:8080 --read-only --tmpfs /tmp belastingbuddy:dast
+          # --retry-all-errors: right after start, Docker's port proxy may reset the connection
+          curl -fsS --retry 30 --retry-all-errors --retry-delay 1 http://localhost:8080/healthz
+      - name: Scan the running app (OWASP ZAP baseline)
+        run: |
+          # ZAP runs as uid 1000 and writes its reports here: give it the folder (not world-writable)
+          mkdir -p zap && cp .zap/rules.tsv zap/ && sudo chown -R 1000:1000 zap
+          # ZAP "stable", pinned by digest. Exit code: 0 = clean, 1 = FAIL, 2 = WARN -> both fail the job
+          docker run --rm --network dast -v "$PWD/zap:/zap/wrk:rw" \
+            ghcr.io/zaproxy/zaproxy@sha256:9624669db72f54d86c4b46a7064518bd9bf79d8c61a4c31befa9923489f328af \
+            zap-baseline.py -t http://app:8080 -c rules.tsv -r zap-report.html -J zap-report.json
+      - name: Upload the ZAP report
+        if: always()               # also (especially) when the scan failed
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-report
+          path: zap/zap-report.*
+      - name: Show the app's log if something failed
+        if: failure()
+        run: docker logs app

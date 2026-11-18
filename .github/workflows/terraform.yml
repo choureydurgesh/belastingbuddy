@@ -37,6 +37,8 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY || 'dummy-until-secret-added' }}
       AWS_REGION: eu-west-1
       TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY || 'ssh-ed25519 dummy-until-secret-added' }}
+      # Your IP for SSH/Grafana (repo variable). Fallback is a documentation-only range, so nobody can get in.
+      TF_VAR_allowed_ssh_cidr: ${{ vars.ALLOWED_SSH_CIDR || '203.0.113.7/32' }}
     steps:
       - name: Check out code
         uses: actions/checkout@v4

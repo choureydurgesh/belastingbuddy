@@ -1,0 +1,9 @@
+# OWASP ZAP baseline rules for CI (tab-separated: rule id, action, reason).
+# The CI job fails on ANY warning. A rule is only ignored here with a written reason,
+# like the npm audit allowlist: accepted risk is visible and reviewed in pull requests.
+# Rule list: https://www.zaproxy.org/docs/alerts/
+10055	IGNORE	(CSP unsafe-inline: Next.js static export puts inline <script>/<style> tags in every page and a static site has no server to add nonces. Everything else in the CSP is locked down. Follow-up: script hashes, BEL-68)
+90003	IGNORE	(Sub Resource Integrity missing: only on the Google Fonts stylesheet, which changes per browser so it cannot carry a fixed hash. Fix: self-host the font, BEL-64)
+90004	IGNORE	(Cross-Origin-Embedder/Opener-Policy: COEP require-corp would block pdf.js and tesseract.js from the CDNs and Google Fonts. CORP and COOP are set. Revisit with BEL-64)
+10049	IGNORE	(Informational: static pages are cacheable on purpose; no personal data is served, answers stay in the browser)
+10109	IGNORE	(Informational: ZAP notes this is a JavaScript app and suggests its AJAX spider; the baseline scan is passive only)

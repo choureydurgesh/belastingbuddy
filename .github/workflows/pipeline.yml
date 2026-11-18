@@ -1,7 +1,7 @@
 # =============================================================================
 # THE MAIN CI/CD PIPELINE  (runs on every push to main)
 #
-#   CI  : ci.yml (tests, lint, scans)
+#   CI  : ci.yml (tests, lint, secrets, dependencies, IaC misconfig, DAST with OWASP ZAP)
 #    |
 #   build image -> push to GHCR
 #    |

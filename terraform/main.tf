@@ -55,11 +55,23 @@ resource "aws_security_group" "web" {
     protocol    = "tcp"
     cidr_blocks = [var.allowed_ssh_cidr] # only you, not the whole internet
   }
+  # Outbound: only HTTP(S), for apt packages and pulling images from GHCR / Docker Hub.
+  # It must be "any IP": registries and mirrors sit behind CDNs with changing addresses.
+  # (DNS and time sync go to Amazon's own resolvers, which security groups don't filter.)
+  # trivy:ignore:AWS-0104 reviewed: HTTPS/HTTP egress to CDNs can't be pinned to fixed IPs
   egress {
-    description = "Allow all outbound (to pull Docker images)"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
+    description = "HTTPS out (container registries, pip)"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  # trivy:ignore:AWS-0104 reviewed: Ubuntu apt mirrors are served over HTTP (packages are GPG-signed)
+  egress {
+    description = "HTTP out (Ubuntu apt mirrors)"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 }

@@ -46,7 +46,7 @@ make up                # = docker compose up -d --build
 
 ## Step 3 – GitHub Actions
 Compare with the course repo: `ci.yml` uses a **matrix** + **reusable workflow** (`workflow_call`), `pipeline.yml` chains jobs with **needs**, uses **concurrency**, **permissions** and **GITHUB_TOKEN**.
-1. Push a branch, open a PR → `CI` runs (tests, ESLint, hadolint, gitleaks, npm audit gate, terraform/k8s/ansible validation).
+1. Push a branch, open a PR → `CI` runs (tests, ESLint, hadolint, gitleaks, npm audit gate, terraform/k8s/ansible validation, Trivy misconfiguration scan, OWASP ZAP DAST; see Step 3c).
    - **Layers of static analysis:** `tsc` (types) and ESLint (`npm run lint`, React/Next.js rules) run on every PR and on your laptop; SonarCloud adds deeper analysis and a quality gate.
    - **npm audit gate** (`npm run audit:gate`, `scripts/audit-gate.mjs`): fails on any high/critical advisory except those listed in `.npm-audit-allowlist.json` with a reason and a review date. It also fails once a review date passes or a listed advisory disappears, so exceptions can't be forgotten.
 2. Merge to `main` → `Pipeline` runs: CI → build an **amd64 + arm64** image → push to `ghcr.io/choureydurgesh/belastingbuddy:<sha>` (and Docker Hub, see 4) → Trivy scan → commit new tag to `k8s/overlays/prod`. About 2 minutes.
@@ -91,6 +91,42 @@ docker run -it --rm --name bb-runner --cpus 2 --memory 4g ghcr.io/actions/action
 - **Ephemeral:** it takes one job, then GitHub removes it and the container exits, so no state leaks between jobs. Run `make runner-up` again for the next one.
 - **Hosted vs self-hosted:** hosted = clean VM per job, no maintenance, billed minutes on private repos. Self-hosted = your hardware, network and tools (e.g. reach a private network), but you patch, secure and keep it online. If the laptop is off, the job waits in the queue.
 
+## Step 3c – DevSecOps: every security check, in pipeline order
+| Stage | Check | Tool | Where | Accepted exceptions |
+|---|---|---|---|---|
+| Code | Leaked passwords/keys in git history | gitleaks | `ci.yml` → `secrets-scan` | none |
+| Code | Known-vulnerable npm packages (SCA) | npm audit gate | `ci.yml` → `dependency-scan` | `.npm-audit-allowlist.json` (reason + expiry) |
+| Code | Lint + static analysis (SAST) | ESLint, `tsc`, SonarCloud | `ci.yml` → `lint`, `test`; SonarCloud PR check | SonarCloud UI (reviewed) |
+| IaC | Misconfigurations in Kubernetes, Terraform, Dockerfile | **Trivy `config`** | `ci.yml` → `iac-security` | inline `trivy:ignore:<ID>` + reason |
+| Build | Dockerfile best practices | hadolint | `ci.yml` → `docker-lint` | none |
+| Run | Attack surface of the running app (DAST) | **OWASP ZAP baseline** | `ci.yml` → `dast` | `.zap/rules.tsv` (reason per rule) |
+| Image | CVEs in the built image | Trivy `image` | `image-scan.yml` (after push) | `ignore-unfixed` only |
+
+Every gate **fails the build**; an exception must be written down with a reason where reviewers see it.
+
+**SAST vs DAST:** SAST reads the source code. DAST knows nothing about the code: it starts the app and looks at what a browser gets back (headers, cookies, error pages, exposed files). Both find different problems.
+
+Run them yourself (Docker only, nothing to install):
+```bash
+# Trivy: misconfigurations in k8s/, terraform/ and the Dockerfile
+docker run --rm -v "$PWD":/src:ro aquasec/trivy:0.70.0 config --severity HIGH,CRITICAL \
+  --skip-dirs /src/node_modules --skip-dirs /src/.next --skip-dirs /src/out /src
+
+# ZAP: build + start the app, then scan it (report in ./zap/zap-report.html)
+docker build -t belastingbuddy:dast . && docker network create dast
+docker run -d --rm --name app --network dast --read-only --tmpfs /tmp belastingbuddy:dast
+mkdir -p zap && cp .zap/rules.tsv zap/ && chmod 777 zap   # local only; CI gives the folder to ZAP's uid 1000 instead
+docker run --rm --network dast -v "$PWD/zap:/zap/wrk:rw" ghcr.io/zaproxy/zaproxy:stable \
+  zap-baseline.py -t http://app:8080 -c rules.tsv -r zap-report.html
+docker rm -f app && docker network rm dast
+```
+In CI, the HTML report is attached to the run (Actions → run → **Artifacts** → `zap-report`).
+
+**What the first scans found (and the fixes)**
+- **ZAP, 7 warnings → 0:** missing CSP, Permissions-Policy and CORP/COOP headers (added); nginx version in the `Server` header (`server_tokens off`); and a real bug: **JS/CSS files had no `nosniff` header**. nginx drops server-level `add_header` lines in any `location` that has its own `add_header` (the cache rule for `/_next/static/`). Fixed with `add_header_inherit merge;`. The CSP was tested in a headless browser: PDF and photo reading (pdf.js, tesseract.js from CDNs) still work with no CSP violations.
+- **ZAP, accepted (in `.zap/rules.tsv`):** `unsafe-inline` in the CSP (a static export has inline scripts and no server to add nonces; hashes are a follow-up, BEL-68), no SRI on Google Fonts (fix = self-host the font, BEL-64), no COEP (it would block the CDN scripts).
+- **Trivy, 5 findings → 0:** pods now have a pod-level security context with the default **seccomp** profile and a **read-only root filesystem** (nginx writes only to an `emptyDir` at `/tmp`); SSH no longer defaults to `0.0.0.0/0` (Terraform now rejects it); outbound traffic is limited to ports 80/443. The "egress to any IP" rule stays as a reviewed `trivy:ignore`: registries and apt mirrors sit behind CDNs without fixed IPs.
+
 ## Step 4 – Kubernetes (local with kind)
 Works on Intel and Apple Silicon Macs: the image is multi-arch, so each node pulls its own CPU type.
 ```bash
@@ -120,7 +156,7 @@ terraform init && terraform plan && terraform apply
 terraform destroy                               # when finished – avoids AWS cost!
 ```
 - **Learn:** providers, resources vs data sources, variables/outputs, state (and why remote state), `plan` before `apply`, generated Ansible inventory.
-- **In CI** (`.github/workflows/terraform.yml`): until you add the repo secrets `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and `SSH_PUBLIC_KEY`, the job uses dummy values and only runs `terraform validate`. Add them and `plan` (and manual apply/destroy) switch on by themselves.
+- **In CI** (`.github/workflows/terraform.yml`): until you add the repo secrets `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and `SSH_PUBLIC_KEY`, the job uses dummy values and only runs `terraform validate`. Add them and `plan` (and manual apply/destroy) switch on by themselves. Also set the repo **variable** `ALLOWED_SSH_CIDR` to your IP (`x.x.x.x/32`): SSH and Grafana are only open to that range, and Terraform refuses `0.0.0.0/0`.
 
 ## Step 7 – Ansible
 ```bash
@@ -156,7 +192,7 @@ make trace           # sends a fake trace; you will see it printed by the collec
 - **Why GitOps?** Git is the audit log and rollback button; nobody needs cluster credentials in CI.
 - **Why GHCR + SHA tags?** GHCR logs in with the per-run `GITHUB_TOKEN`, so there is no long-lived registry password; every running image maps to one commit; no mutable `latest` in prod (prod overlay pins the SHA). The same image is also published to Docker Hub (identical digest) for visibility.
 - **Why multi-arch?** One tag holds amd64 and arm64 images, so it runs on cloud VMs, ARM servers and Apple Silicon. The Node build runs natively (`--platform=$BUILDPLATFORM`); only the small nginx stage is emulated.
-- **Security (shift-left):** ESLint, hadolint, gitleaks, npm audit gate with documented exceptions, Trivy, non-root container, dropped capabilities, least-privilege `permissions:`, IMDSv2 + encrypted disk in Terraform.
+- **Security (shift-left):** gitleaks, npm audit gate, ESLint + SonarCloud (SAST), Trivy misconfiguration scan (IaC), hadolint, OWASP ZAP (DAST), Trivy image scan. Every gate fails the build, and every exception is written down with a reason (Step 3c). Runtime: non-root, read-only root filesystem, seccomp, dropped capabilities, least-privilege `permissions:`, IMDSv2 + encrypted disk in Terraform.
 - **Reliability:** 2 replicas, rolling update with maxUnavailable 0, probes, PDB, HPA, SLO-based alerts.
 - **Trade-offs you made:** static site on Cloudflare Pages is cheaper/simpler in production; this stack is a *learning* platform. Saying this shows judgement.
 - **Next steps:** Loki for logs, real OTel instrumentation, Terraform remote state + OIDC auth, Argo CD image updater, sealed secrets.
