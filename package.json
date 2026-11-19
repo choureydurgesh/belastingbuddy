@@ -10,6 +10,7 @@
     "lint": "eslint .",
     "audit:gate": "node scripts/audit-gate.mjs",
     "test": "tsx --test src/lib/**/*.test.ts src/lib/*.test.ts",
+    "test:coverage": "node -e \"require('fs').mkdirSync('coverage',{recursive:true})\" && tsx --test --experimental-test-coverage --test-reporter=spec --test-reporter-destination=stdout --test-reporter=lcov --test-reporter-destination=coverage/lcov.info src/lib/**/*.test.ts src/lib/*.test.ts",
     "deploy": "next build && wrangler pages deploy out --project-name belastingbuddy"
   },
   "dependencies": {
