@@ -96,13 +96,22 @@ docker run -it --rm --name bb-runner --cpus 2 --memory 4g ghcr.io/actions/action
 |---|---|---|---|---|
 | Code | Leaked passwords/keys in git history | gitleaks | `ci.yml` → `secrets-scan` | none |
 | Code | Known-vulnerable npm packages (SCA) | npm audit gate | `ci.yml` → `dependency-scan` | `.npm-audit-allowlist.json` (reason + expiry) |
-| Code | Lint + static analysis (SAST) | ESLint, `tsc`, SonarCloud | `ci.yml` → `lint`, `test`; SonarCloud PR check | SonarCloud UI (reviewed) |
+| Code | Lint + static analysis (SAST) | ESLint, `tsc` | `ci.yml` → `lint`, `test` | none |
+| Code | SAST, code smells, duplication, **coverage**, quality gate | **SonarCloud** (free plan, CI-based) | `ci.yml` → `sonar`, `sonar-project.properties` | reviewed in the SonarCloud UI |
 | IaC | Misconfigurations in Kubernetes, Terraform, Dockerfile | **Trivy `config`** | `ci.yml` → `iac-security` | inline `trivy:ignore:<ID>` + reason |
 | Build | Dockerfile best practices | hadolint | `ci.yml` → `docker-lint` | none |
 | Run | Attack surface of the running app (DAST) | **OWASP ZAP baseline** | `ci.yml` → `dast` | `.zap/rules.tsv` (reason per rule) |
 | Image | CVEs in the built image | Trivy `image` | `image-scan.yml` (after push) | `ignore-unfixed` only |
 
 Every gate **fails the build**; an exception must be written down with a reason where reviewers see it.
+
+**SonarCloud, one-time setup** (free for public repos; until step 3 the `sonar` job only prints a notice):
+1. sonarcloud.io → project **belastingbuddy** → **Administration → Analysis Method** → switch **Automatic Analysis off**. Only one method can be on: with both, the CI scan fails with "You are running CI analysis while Automatic Analysis is enabled".
+2. **My Account → Security → Generate token** (name it `github-actions`). Copy it now; it's shown only once.
+3. GitHub repo → **Settings → Secrets and variables → Actions → New repository secret** `SONAR_TOKEN` = the token.
+4. Re-run CI. The job runs `npm run test:coverage` (writes `coverage/lcov.info`), scans and **waits for the quality gate** (`-Dsonar.qualitygate.wait=true`), so a failing gate fails the PR and stops the Pipeline on `main`.
+- **Why CI-based instead of automatic:** automatic analysis can't run our tests, so it shows no coverage, and it's only a PR check, outside the pipeline.
+- **Coverage scope:** measured for `src/lib` (tax maths, questions, scanning), where the unit tests are. Components, pages and infrastructure are still analysed for bugs and smells, but not counted for coverage (`sonar.coverage.exclusions`), because there are no UI tests yet.
 
 **SAST vs DAST:** SAST reads the source code. DAST knows nothing about the code: it starts the app and looks at what a browser gets back (headers, cookies, error pages, exposed files). Both find different problems.
 
