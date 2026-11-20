@@ -101,7 +101,7 @@ docker run -it --rm --name bb-runner --cpus 2 --memory 4g ghcr.io/actions/action
 | IaC | Misconfigurations in Kubernetes, Terraform, Dockerfile | **Trivy `config`** | `ci.yml` → `iac-security` | inline `trivy:ignore:<ID>` + reason |
 | Build | Dockerfile best practices | hadolint | `ci.yml` → `docker-lint` | none |
 | Run | Attack surface of the running app (DAST) | **OWASP ZAP baseline** | `ci.yml` → `dast` | `.zap/rules.tsv` (reason per rule) |
-| Image | CVEs in the built image | Trivy `image` | `image-scan.yml` (after push) | `ignore-unfixed` only |
+| Image | CVEs in the built image | Trivy `image` | `image-scan.yml` (after push) | `ignore-unfixed` only; Dockerfile `# hadolint ignore=` with a reason |
 
 Every gate **fails the build**; an exception must be written down with a reason where reviewers see it.
 
@@ -134,6 +134,7 @@ In CI, the HTML report is attached to the run (Actions → run → **Artifacts**
 **What the first scans found (and the fixes)**
 - **ZAP, 7 warnings → 0:** missing CSP, Permissions-Policy and CORP/COOP headers (added); nginx version in the `Server` header (`server_tokens off`); and a real bug: **JS/CSS files had no `nosniff` header**. nginx drops server-level `add_header` lines in any `location` that has its own `add_header` (the cache rule for `/_next/static/`). Fixed with `add_header_inherit merge;`. The CSP was tested in a headless browser: PDF and photo reading (pdf.js, tesseract.js from CDNs) still work with no CSP violations.
 - **ZAP, accepted (in `.zap/rules.tsv`):** `unsafe-inline` in the CSP (a static export has inline scripts and no server to add nonces; hashes are a follow-up, BEL-68), no SRI on Google Fonts (fix = self-host the font, BEL-64), no COEP (it would block the CDN scripts).
+- **Trivy image scan, 6 new CVEs → 0 (20 Nov 2026):** nginx 1.30.7 fixed 6 HIGH/CRITICAL CVEs, but the base image `nginx-unprivileged:1.30-alpine` still had 1.30.6, and `apk upgrade` didn't help because the image **pins** `nginx=1.30.6-r1`. Fix in the Dockerfile: take nginx from nginx.org's signed repo as `nginx<1.31` (newest 1.30.x patch, never a new line), and remove the four unused nginx modules (nothing loads them). Lesson: the pipeline stopped the deploy, the old image kept running, and the fix didn't have to wait for the upstream rebuild.
 - **Trivy, 5 findings → 0:** pods now have a pod-level security context with the default **seccomp** profile and a **read-only root filesystem** (nginx writes only to an `emptyDir` at `/tmp`); SSH no longer defaults to `0.0.0.0/0` (Terraform now rejects it); outbound traffic is limited to ports 80/443. The "egress to any IP" rule stays as a reviewed `trivy:ignore`: registries and apt mirrors sit behind CDNs without fixed IPs.
 
 ## Step 4 – Kubernetes (local with kind)
