@@ -11,7 +11,7 @@
     dest: "{{ app_dir }}/docker-compose.yml"
     mode: "0640"
 
-- name: Copy observability configs (Prometheus, Grafana, OTel, blackbox)
+- name: Copy observability configs (Prometheus, Grafana, Loki, Tempo, Alertmanager, OTel, nginx)
   ansible.builtin.copy:
     src: "{{ playbook_dir }}/../observability/"
     dest: "{{ app_dir }}/observability/"

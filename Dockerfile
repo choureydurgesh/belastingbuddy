@@ -40,6 +40,11 @@ FROM nginxinc/nginx-unprivileged:1.30-alpine AS runtime
 #    fixed 6 HIGH/CRITICAL CVEs on 18 Nov 2026, before the base image was rebuilt with it.
 #  - the optional nginx modules (geoip, image-filter, njs, xslt) are removed: our config
 #    loads none of them, and code that isn't there can't have CVEs.
+#  - except nginx's official OpenTelemetry module (ngx_otel_module), same repo and version as
+#    nginx. It is LOADED but OFF: no otel_* directive is in the image's config, so in
+#    Kubernetes nothing changes. Docker Compose mounts observability/nginx/otel.conf, which
+#    turns tracing on (every request -> a span -> Tempo) and writes JSON access logs that
+#    carry the trace_id to /var/log/nginx/otel/ (picked up by the collector -> Loki).
 USER root
 # DL3018 reviewed: "nginx<1.31" IS a pin (to the 1.30 line); an exact version would need a
 # bump for every patch and would downgrade nginx once the base image ships a newer one.
@@ -48,7 +53,10 @@ RUN apk del --no-cache nginx-module-geoip nginx-module-image-filter nginx-module
  && apk upgrade --no-cache \
  && apk add --no-cache --upgrade \
       --repository "https://nginx.org/packages/alpine/v$(cut -d. -f1,2 /etc/alpine-release)/main" \
-      "nginx<1.31"
+      "nginx<1.31" "nginx-module-otel<1.31" \
+ && rm /usr/lib/nginx/modules/ngx_otel_module-debug.so \
+ && sed -i '1i load_module modules/ngx_otel_module.so;' /etc/nginx/nginx.conf \
+ && install -d -o 101 -g 0 -m 755 /var/log/nginx/otel
 USER 101
 
 # Our own nginx config: caching headers, /healthz and /stub_status (metrics).

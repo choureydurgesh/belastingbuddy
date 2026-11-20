@@ -1,30 +1,95 @@
-# OPENTELEMETRY CONCEPT: the Collector is a pipeline:  receivers -> processors -> exporters
-#   receivers  = how data gets IN   (apps send OTLP)
-#   processors = what we do to it   (batch, limit memory)
-#   exporters  = where it goes OUT  (Prometheus, logs, later Jaeger/Tempo/Grafana Cloud)
+# OpenTelemetry Collector = the "post office" for telemetry.
+#   receivers  -> how data comes IN
+#   processors -> what we do with it on the way (protect memory, batch)
+#   connectors -> turn one signal into another (here: spans -> RED metrics)
+#   exporters  -> where it goes OUT (one backend per signal)
+#
+#   nginx (otel module) --OTLP--> traces ──► Tempo
+#                                    └──► spanmetrics ──► metrics ──► Prometheus (scrapes :8889)
+#   nginx JSON access log --filelog--> logs ──► Loki
+#   anything else (make trace, your own code) --OTLP :4317/:4318--> same pipelines
+
 receivers:
   otlp:
     protocols:
       grpc: { endpoint: 0.0.0.0:4317 }
       http: { endpoint: 0.0.0.0:4318 }
 
+  # nginx can't send logs over OTLP, so the collector tails the JSON log file nginx writes
+  # (shared Docker volume, see docker-compose.yml) and turns each line into an OTel log record.
+  filelog/nginx:
+    include: [/var/log/nginx/otel/access.json]
+    start_at: end                      # only new lines (no duplicates after a collector restart)
+    operators:
+      - type: json_parser              # the line is JSON -> fields become attributes
+        timestamp: { parse_from: attributes.time, layout_type: gotime, layout: "2006-01-02T15:04:05Z07:00" }
+      - type: trace_parser             # put trace_id/span_id on the record itself (that's what links logs <-> traces)
+        trace_id: { parse_from: attributes.trace_id }
+        span_id: { parse_from: attributes.span_id }
+      - type: severity_parser          # 5xx = ERROR, 4xx = WARN, everything else INFO
+        parse_from: attributes.status
+        overwrite_text: true           # store "WARN", not "404" -> Loki's detected_level="warn"
+        mapping:
+          error: [{ min: 500, max: 599 }]
+          warn: [{ min: 400, max: 499 }]
+          info: [{ min: 100, max: 399 }]
+      - type: add
+        field: body
+        value: EXPR(attributes.method + " " + attributes.uri + " " + string(attributes.status))
+
 processors:
   memory_limiter:            # protects the collector from running out of RAM
     check_interval: 1s
     limit_mib: 200
   batch: {}                  # groups data into batches -> fewer network calls
+  resource/nginx-logs:       # name the file logs like the traces, so both share service_name
+    attributes:              # "insert" = only where missing; OTLP senders keep their own name
+      - { key: service.name, value: belastingbuddy, action: insert }
+
+connectors:
+  # Builds RED metrics (Rate, Errors, Duration) from every span that passes through.
+  # Result in Prometheus: traces_span_metrics_calls_total and traces_span_metrics_duration_milliseconds_*
+  # (the same idea as http_server_duration_* that an instrumented backend would report itself)
+  spanmetrics:
+    histogram:
+      explicit:
+        buckets: [1ms, 2ms, 5ms, 10ms, 25ms, 50ms, 100ms, 250ms, 500ms, 1s]
+    # Extra labels besides service_name/span_name. nginx's module uses the older OTel
+    # attribute names (http.method, http.status_code), so do we. span_name is nginx's
+    # location ("/", "/_next/static/"), not the URL: that keeps the number of series small.
+    dimensions:
+      - name: http.method
+      - name: http.status_code
+    metrics_flush_interval: 15s
 
 exporters:
-  debug:                     # prints received data to the collector log (great for learning)
-    verbosity: detailed
-  prometheus:                # exposes OTel metrics on :8889 so Prometheus can scrape them
+  debug:                     # prints a one-line summary of what passed through (docker compose logs otel-collector)
+    verbosity: basic
+  prometheus:                # exposes metrics on :8889 so Prometheus can scrape them
     endpoint: 0.0.0.0:8889
+  otlp_grpc/tempo:           # traces -> Tempo
+    endpoint: tempo:4317
+    tls: { insecure: true }
+  otlp_http/loki:            # logs -> Loki (Loki speaks OTLP natively)
+    endpoint: http://loki:3100/otlp
 
 service:
   telemetry:
-    metrics:
-      address: 0.0.0.0:8888  # the collector's own health metrics
+    metrics:                 # the collector's own health metrics on :8888
+      readers:
+        - pull:
+            exporter:
+              prometheus: { host: 0.0.0.0, port: 8888 }
   pipelines:
-    metrics: { receivers: [otlp], processors: [memory_limiter, batch], exporters: [prometheus, debug] }
-    traces:  { receivers: [otlp], processors: [memory_limiter, batch], exporters: [debug] }
-    logs:    { receivers: [otlp], processors: [memory_limiter, batch], exporters: [debug] }
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [otlp_grpc/tempo, spanmetrics, debug]
+    metrics:
+      receivers: [otlp, spanmetrics]
+      processors: [memory_limiter, batch]
+      exporters: [prometheus]
+    logs:
+      receivers: [otlp, filelog/nginx]
+      processors: [memory_limiter, resource/nginx-logs, batch]
+      exporters: [otlp_http/loki, debug]
