@@ -9,4 +9,4 @@ resources:
 images:
 - name: belastingbuddy
   newName: ghcr.io/choureydurgesh/belastingbuddy
-  newTag: bb43421
+  newTag: 92271f4
