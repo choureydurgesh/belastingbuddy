@@ -74,3 +74,22 @@ then a Trivy CVE scan of every built image. Overview: [LEARNING.md, Step 3c](doc
 make up    # app + metrics, logs, traces and alerts locally  ->  http://localhost:8080 / Grafana :3000 / Prometheus :9090
 make traffic   # demo traffic; then follow observability/TUTORIAL.md
 ```
+
+## License
+
+BelastingBuddy is **source-available, not open source**. It's licensed under the
+[PolyForm Noncommercial License 1.0.0](LICENSE.md).
+
+- ✅ **Free for noncommercial use:** personal use, learning, research, hobby projects, and use by
+  charities, schools, public research and government organisations. You may read, run, change
+  and share the code for those purposes, as long as you include the license and the
+  `Required Notice` line from [LICENSE.md](LICENSE.md).
+- ❌ **Commercial use needs a separate license**, for example using it in or for a business, or
+  offering it (or a modified version) as a paid or company product or service.
+  For a commercial license, [open an issue](https://github.com/choureydurgesh/belastingbuddy/issues)
+  or contact [@choureydurgesh](https://github.com/choureydurgesh).
+
+**Name and logo:** "BelastingBuddy" and its logo are not covered by the license. Forks must use
+a different name and logo.
+
+Third-party packages keep their own licenses (see `package-lock.json`).
