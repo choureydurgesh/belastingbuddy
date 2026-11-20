@@ -30,11 +30,25 @@ RUN npm run build
 # 1.30 = nginx's current *stable* line.
 FROM nginxinc/nginx-unprivileged:1.30-alpine AS runtime
 
-# The base image is only rebuilt every few weeks, so Alpine security fixes released
-# since then are missing (Trivy flags them). Install them on every build, then switch
-# back to the image's non-root user (uid 101).
+# The base image is only rebuilt every few weeks, so security fixes released since then
+# are missing (Trivy flags them). Install them on every build, then switch back to the
+# image's non-root user (uid 101):
+#  - Alpine's own repos: OS packages (openssl, busybox, ...)
+#  - nginx itself from nginx.org's repo (signed; the image already trusts its key). The base
+#    image pins the exact version (nginx=1.30.6-r1), so `apk upgrade` alone keeps it; "<1.31"
+#    takes the newest 1.30.x patch but never jumps to a new release line. Example: 1.30.7
+#    fixed 6 HIGH/CRITICAL CVEs on 18 Nov 2026, before the base image was rebuilt with it.
+#  - the optional nginx modules (geoip, image-filter, njs, xslt) are removed: our config
+#    loads none of them, and code that isn't there can't have CVEs.
 USER root
-RUN apk upgrade --no-cache
+# DL3018 reviewed: "nginx<1.31" IS a pin (to the 1.30 line); an exact version would need a
+# bump for every patch and would downgrade nginx once the base image ships a newer one.
+# hadolint ignore=DL3018
+RUN apk del --no-cache nginx-module-geoip nginx-module-image-filter nginx-module-njs nginx-module-xslt \
+ && apk upgrade --no-cache \
+ && apk add --no-cache --upgrade \
+      --repository "https://nginx.org/packages/alpine/v$(cut -d. -f1,2 /etc/alpine-release)/main" \
+      "nginx<1.31"
 USER 101
 
 # Our own nginx config: caching headers, /healthz and /stub_status (metrics).
