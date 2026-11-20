@@ -184,3 +184,41 @@ jobs:
       - name: Show the app's log if something failed
         if: failure()
         run: docker logs app
+
+  # ---- 9. SonarCloud: SAST, code smells, duplication and test coverage, with a quality gate ----
+  # Free plan (public repo), CI-based analysis: runs here so it sees our coverage report and
+  # can fail the build. The quality gate is checked on NEW code (what this PR/commit changed).
+  # Settings: sonar-project.properties. Needs the repo secret SONAR_TOKEN; without it (or on
+  # PRs from forks, which get no secrets) the job only prints a notice.
+  sonar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check that the SonarCloud token is set
+        id: token
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          if [ -n "$SONAR_TOKEN" ]; then echo "set=true" >> "$GITHUB_OUTPUT"
+          else echo "::notice::SONAR_TOKEN is not set - SonarCloud analysis skipped. See docs/LEARNING.md Step 3c."; fi
+      - name: Check out code (full history, so Sonar knows which lines are new)
+        if: steps.token.outputs.set == 'true'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Node.js 22
+        if: steps.token.outputs.set == 'true'
+        uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - name: Install dependencies (lockfile, no install scripts)
+        if: steps.token.outputs.set == 'true'
+        run: npm ci --ignore-scripts
+      - name: Run unit tests with coverage (writes coverage/lcov.info)
+        if: steps.token.outputs.set == 'true'
+        run: npm run test:coverage
+      - name: Analyse with SonarCloud and wait for the quality gate
+        if: steps.token.outputs.set == 'true'
+        uses: SonarSource/sonarqube-scan-action@59202af334b4ba7b5db01b701b8e79f8b3bef0f4 # v8.5.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: -Dsonar.qualitygate.wait=true

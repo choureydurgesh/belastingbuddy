@@ -26,6 +26,7 @@ Other commands:
 | Command | What it does |
 |---|---|
 | `npm test` | Checks the tax maths |
+| `npm run test:coverage` | Same tests, plus a coverage report in `coverage/lcov.info` (used by SonarCloud) |
 | `npm run lint` | Checks the code with ESLint (Next.js, React, React Hooks, accessibility and TypeScript rules) |
 | `npm run typecheck` | Checks the TypeScript types |
 | `npm run audit:gate` | Checks dependencies for known high/critical vulnerabilities (exceptions in `.npm-audit-allowlist.json`) |
