@@ -1,0 +1,18 @@
+# Alertmanager: Prometheus decides WHEN something is wrong (alerts.yml);
+# Alertmanager decides WHO hears about it: groups, de-duplicates, silences and routes alerts.
+# UI: http://localhost:9093
+route:
+  receiver: default
+  group_by: [alertname]
+  group_wait: 10s          # wait a bit so related alerts arrive as one notification
+  group_interval: 1m
+  repeat_interval: 1h      # remind every hour while still firing
+
+receivers:
+  # No notification target on purpose: alerts are visible in the UI only.
+  # To get notified, add for example (keep the webhook URL out of git: use a secret/env):
+  #   slack_configs:
+  #     - api_url_file: /etc/alertmanager/slack-webhook
+  #       channel: "#alerts"
+  #       send_resolved: true
+  - name: default

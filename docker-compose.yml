@@ -1,46 +1,89 @@
 # =============================================================================
 # DOCKER COMPOSE: run the app + the whole observability stack with ONE command:
-#     docker compose up -d --build
+#     docker compose up -d --build        (or: make up)
+#     ./scripts/traffic.sh                (or: make traffic) -> 60s of demo traffic
 #
-#   App          http://localhost:8080
-#   Prometheus   http://localhost:9090
-#   Grafana      http://localhost:3000   (login admin / admin)
-#   OTel collector  OTLP in on :4318 (HTTP) and :4317 (gRPC)
+#   App           http://localhost:8080
+#   Grafana       http://localhost:3000   (login admin / admin) - metrics, logs AND traces
+#   Prometheus    http://localhost:9090   (try /targets and /alerts)
+#   Alertmanager  http://localhost:9093
+#   Loki          http://localhost:3100   (API only; browse logs in Grafana -> Explore -> Loki)
+#   cAdvisor      http://localhost:8081   (8080 is taken by the app)
+#   OTel collector  OTLP in on :4317 (gRPC) and :4318 (HTTP)
+#   Tempo, node-exporter, nginx-exporter, blackbox: internal only
+#
+#   Signals:   metrics -> Prometheus (PromQL) | logs -> Loki (LogQL) | traces -> Tempo (TraceQL)
+#              Grafana reads all three; Alertmanager receives Prometheus' alerts.
 # =============================================================================
 services:
 
-  # ---- 1. The application (nginx serving the static site) ----
+  # ---- The application: nginx serving the static site ----
   app:
     build: .
     # On a server (Ansible) we set APP_IMAGE to the image CI pushed to GHCR.
     image: ${APP_IMAGE:-belastingbuddy:local}
     ports: ["8080:8080"]
+    volumes:
+      # Switches nginx's OpenTelemetry module ON (traces + JSON logs with trace_id). Compose only.
+      - ./observability/nginx/otel.conf:/etc/nginx/conf.d/otel.conf:ro
+      # The JSON access log, shared with the collector, which ships it to Loki
+      - nginx-logs:/var/log/nginx/otel
+    depends_on: [otel-collector]       # start the collector first so the first spans aren't lost
     restart: unless-stopped
 
-  # ---- 2. Exporter: translates nginx /stub_status into Prometheus metrics ----
+  # ---- Metrics: nginx /stub_status -> Prometheus format ----
   nginx-exporter:
     image: nginx/nginx-prometheus-exporter:1.3
     command: ["--nginx.scrape-uri=http://app:8080/stub_status"]
     depends_on: [app]
     restart: unless-stopped
 
-  # ---- 3. Blackbox exporter: probes the site like a real user (the SLI for availability) ----
+  # ---- Metrics: probes the site like a real user (the SLI for availability) ----
   blackbox:
     image: prom/blackbox-exporter:v0.25.0
     volumes: ["./observability/blackbox/blackbox.yml:/etc/blackbox_exporter/config.yml:ro"]
     restart: unless-stopped
 
-  # ---- 4. OpenTelemetry Collector: receives traces/metrics/logs (OTLP) and routes them ----
-  otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.111.0
-    command: ["--config=/etc/otelcol/config.yaml"]
-    volumes: ["./observability/otel/otel-collector.yaml:/etc/otelcol/config.yaml:ro"]
-    ports: ["4317:4317", "4318:4318"]
+  # ---- Metrics: host CPU / memory / disk (on a Mac: Docker Desktop's Linux VM) ----
+  node-exporter:
+    image: prom/node-exporter:v1.12.1
+    command:
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --path.rootfs=/rootfs
+      - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
     restart: unless-stopped
 
-  # ---- 5. Prometheus: scrapes & stores metrics, evaluates alert rules ----
+  # ---- Metrics: per-container CPU / memory / network ----
+  # Needs read access to the Docker socket = a lot of power. Fine on your laptop, think twice on a server.
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.55.1
+    ports: ["8081:8080"]
+    volumes:
+      - /:/rootfs:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    restart: unless-stopped
+
+  # ---- OpenTelemetry Collector: receives all telemetry, routes each signal to its backend ----
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.163.2
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./observability/otel/otel-collector.yaml:/etc/otelcol/config.yaml:ro
+      - nginx-logs:/var/log/nginx/otel:ro
+    ports: ["4317:4317", "4318:4318"]
+    depends_on: [tempo, loki]
+    restart: unless-stopped
+
+  # ---- Metrics storage + alert rules ----
   prometheus:
-    image: prom/prometheus:v2.55.0
+    image: prom/prometheus:v3.15.1
     volumes:
       - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - ./observability/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
@@ -48,19 +91,51 @@ services:
     ports: ["9090:9090"]
     restart: unless-stopped
 
-  # ---- 6. Grafana: dashboards. Datasource + dashboard are provisioned from files (no clicking) ----
+  # ---- Alerting: receives firing alerts from Prometheus, groups and routes them ----
+  alertmanager:
+    image: prom/alertmanager:v0.34.2
+    command: ["--config.file=/etc/alertmanager/alertmanager.yml"]
+    volumes: ["./observability/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro"]
+    ports: ["9093:9093"]
+    restart: unless-stopped
+
+  # ---- Logs storage ----
+  loki:
+    image: grafana/loki:3.7.9
+    command: ["-config.file=/etc/loki/config.yaml"]
+    volumes:
+      - ./observability/loki/loki.yml:/etc/loki/config.yaml:ro
+      - loki-data:/loki
+    ports: ["3100:3100"]
+    restart: unless-stopped
+
+  # ---- Traces storage ----
+  tempo:
+    image: grafana/tempo:2.10.10
+    command: ["-config.file=/etc/tempo/tempo.yml"]
+    volumes:
+      - ./observability/tempo/tempo.yml:/etc/tempo/tempo.yml:ro
+      - tempo-data:/var/tempo
+    restart: unless-stopped
+
+  # ---- Grafana: dashboards + Explore for all three signals, provisioned from files ----
   grafana:
-    image: grafana/grafana:11.3.0
+    image: grafana/grafana:13.3.0
     environment:
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}   # change on any real server!
+      # Open on our dashboard after login
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/overview.json
     volumes:
       - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
       - grafana-data:/var/lib/grafana
     ports: ["3000:3000"]
-    depends_on: [prometheus]
+    depends_on: [prometheus, loki, tempo, alertmanager]
     restart: unless-stopped
 
 volumes:
   prometheus-data:
   grafana-data:
+  loki-data:
+  tempo-data:
+  nginx-logs:

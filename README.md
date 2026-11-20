@@ -59,7 +59,7 @@ Other commands:
 ## DevOps showcase
 
 Besides the app, this repo is a hands-on DevOps portfolio: Docker, GitHub Actions CI/CD, Kubernetes, Argo CD (GitOps),
-Terraform, Ansible and SRE/observability (Prometheus, Grafana, OpenTelemetry).
+Terraform, Ansible and SRE/observability (Prometheus, Grafana, Loki, Tempo, Alertmanager, OpenTelemetry).
 Start with **[docs/LEARNING.md](docs/LEARNING.md)** – every file has simple comments explaining the concept.
 
 Container images (amd64 + arm64), built and scanned on every merge to `main`:
@@ -71,5 +71,6 @@ Trivy misconfiguration scan (Kubernetes, Terraform, Dockerfile), hadolint, and a
 then a Trivy CVE scan of every built image. Overview: [LEARNING.md, Step 3c](docs/LEARNING.md#step-3c--devsecops-every-security-check-in-pipeline-order).
 
 ```bash
-make up    # app + Prometheus + Grafana + OpenTelemetry locally  ->  http://localhost:8080 / :9090 / :3000
+make up    # app + metrics, logs, traces and alerts locally  ->  http://localhost:8080 / Grafana :3000 / Prometheus :9090
+make traffic   # demo traffic; then follow observability/TUTORIAL.md
 ```

@@ -1,15 +1,19 @@
 # Shortcuts so you don't have to remember long commands. Run `make help`.
-.PHONY: help up down logs trace kind-up kind-load k8s-dev argocd-install argocd-apps tf-plan ansible runner-up runner-status runner-logs runner-down
+.PHONY: help up down reset logs traffic trace kind-up kind-load k8s-dev argocd-install argocd-apps tf-plan ansible runner-up runner-status runner-logs runner-down
 help:            ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*##' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-16s %s\n", $$1, $$2}'
-up:              ## Run app + Prometheus + Grafana + OTel locally (Docker Compose)
+up:              ## Run app + observability stack locally (Prometheus, Grafana, Loki, Tempo, OTel, Alertmanager)
 	docker compose up -d --build
-down:            ## Stop everything
+down:            ## Stop everything (data is kept)
 	docker compose down
+reset:           ## Stop everything AND delete all stored metrics, logs and traces
+	docker compose down -v
 logs:            ## Follow logs
 	docker compose logs -f
-trace:           ## Send a test trace to the OTel collector, then show its log
-	./scripts/send-test-trace.sh && docker compose logs --tail=30 otel-collector
+traffic:         ## 60s of demo traffic (MODE=errors to trigger HighErrorRate)
+	./scripts/traffic.sh $(or $(MODE),normal) $(or $(SECS),60)
+trace:           ## Send one hand-made test trace (find it in Grafana -> Explore -> Tempo)
+	./scripts/send-test-trace.sh && docker compose logs --tail=10 otel-collector
 kind-up:         ## Create a local Kubernetes cluster (needs kind)
 	kind create cluster --name bb
 kind-load:       ## Build image and load it into kind (no registry needed)

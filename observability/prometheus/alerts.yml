@@ -30,6 +30,32 @@ groups:
         annotations:
           summary: "{{ $labels.instance }} takes more than 1s to answer"
 
+  # RED alerts on real requests (from nginx traces -> spanmetrics). An alert goes
+  # inactive -> pending (condition true) -> firing (true for the whole `for:` time).
+  - name: belastingbuddy-requests
+    rules:
+      # More than half of the requests fail (4xx/5xx). The traffic floor stops it firing on one
+      # stray request.  Try it:  ./scripts/traffic.sh errors 150
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(traces_span_metrics_calls_total{service_name="belastingbuddy", http_status_code=~"[45].."}[1m]))
+            / sum(rate(traces_span_metrics_calls_total{service_name="belastingbuddy"}[1m])) > 0.5
+          and sum(rate(traces_span_metrics_calls_total{service_name="belastingbuddy"}[1m])) > 0.1
+        for: 1m
+        labels: { severity: warning }
+        annotations:
+          summary: "More than 50% of belastingbuddy requests are failing"
+
+  - name: scrape-targets
+    rules:
+      # Any target Prometheus scrapes stopped answering.  Try it:  docker compose stop node-exporter
+      - alert: TargetDown
+        expr: up == 0
+        for: 30s
+        labels: { severity: critical }
+        annotations:
+          summary: "{{ $labels.job }} is down"
+
   - name: belastingbuddy-nginx
     rules:
       - alert: NginxExporterDown

@@ -234,7 +234,7 @@
       },
       "targets": [
         {
-          "expr": "rate(otelcol_receiver_accepted_spans_total[1m])",
+          "expr": "sum(rate(otelcol_receiver_accepted_spans[1m]))",
           "legendFormat": "spans",
           "refId": "A"
         }
@@ -243,6 +243,14 @@
         "defaults": {},
         "overrides": []
       }
+    }
+  ],
+  "links": [
+    {
+      "title": "RED, logs & traces",
+      "type": "link",
+      "url": "/d/bb-red",
+      "icon": "dashboard"
     }
   ]
 }

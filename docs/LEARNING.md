@@ -177,19 +177,28 @@ ansible-playbook site.yml                  # real run; run it twice -> 2nd time 
 Needs `ansible-galaxy collection install community.general` for the firewall tasks.
 
 ## Step 8 – SRE & Observability
-**The 3 pillars:** metrics (Prometheus) · traces (OpenTelemetry) · logs (`docker compose logs`, later Loki).
-```bash
-make trace           # sends a fake trace; you will see it printed by the collector
-```
-- Prometheus → Status → Targets (all UP?) → try queries: `rate(nginx_http_requests_total[1m])`, `probe_success`.
-- Grafana → Dashboards → BelastingBuddy → *Overview (SRE)*.
-- Generate traffic: `for i in $(seq 200); do curl -s localhost:8080/ >/dev/null; done`
-- **Break it on purpose:** `docker compose stop app` → within ~1 min the `SiteDown` alert fires (Prometheus → Alerts). Start it again → resolves.
-- **SRE words to know:** SLI (what you measure: probe success), SLO (target: 99.9 %), error budget (0.1 % ≈ 43 min/month), burn rate (how fast you spend it – see `ErrorBudgetBurnFast`), toil, runbook, postmortem.
+**The 3 pillars, all local with `make up`:** metrics → Prometheus (PromQL) · logs → Loki (LogQL) ·
+traces → Tempo (TraceQL). Grafana shows all three, Alertmanager receives the alerts.
+Hands-on, section by section: **[observability/TUTORIAL.md](../observability/TUTORIAL.md)**.
 
-> Honest note: the site is static, so it has no server code that produces traces by itself. The collector pipeline is
-> real and working; to get *real* traces you would add the OpenTelemetry JS SDK to the browser app or to the
-> Cloudflare Functions in `functions/api/`. That is a good "next step" to mention.
+```bash
+make up && make traffic          # stack + 60 s of traffic
+make trace                       # one hand-made trace (service belastingbuddy-demo)
+```
+- **Where the app's signals come from:** nginx's official OpenTelemetry module turns every request into a
+  span (→ Tempo). The collector's `spanmetrics` connector turns those spans into RED metrics
+  (`traces_span_metrics_*` → Prometheus), and tails nginx's JSON access log, which carries the same
+  `trace_id` (→ Loki). That's what lets Grafana jump from a trace to its log line and back.
+  Only Compose switches this on (`observability/nginx/otel.conf`); in Kubernetes the module is loaded but off.
+- Prometheus → Status → Targets (all 12 UP?) → try `up`, `probe_success`, `rate(nginx_http_requests_total[1m])`.
+- Grafana → *Overview (SRE)* (blackbox SLO view) and *RED, logs & traces*.
+- **Break it on purpose:** `./scripts/traffic.sh errors 150` → `HighErrorRate`; `docker compose stop app` →
+  `SiteDown`; `docker compose stop node-exporter` → `TargetDown`. Watch :9090/alerts and :9093.
+- **SRE words to know:** SLI (what you measure: probe success), SLO (target: 99.9 %), error budget (0.1 % ≈ 43 min/month),
+  burn rate (how fast you spend it – see `ErrorBudgetBurnFast`), RED (rate, errors, duration), toil, runbook, postmortem.
+
+> Honest note: the site is static, so a trace is a single nginx span. The `/api` (Cloudflare Pages Functions)
+> isn't traced; adding the OpenTelemetry JS SDK there, or in the browser, would be the next step.
 
 ### Runbook: site down
 1. Grafana "Site up?" panel red? → `docker compose ps` / `kubectl get pods`.

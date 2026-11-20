@@ -1,5 +1,5 @@
-# PROMETHEUS CONCEPT: "pull" model. Prometheus visits each target every scrape_interval
-# and reads its /metrics page. Each (job, instance) pair is one "target".
+# Prometheus PULLS ("scrapes") metrics from every target below every 15s and stores them.
+# Check them all at http://localhost:9090/targets  (or the PromQL query:  up)
 global:
   scrape_interval: 15s
   evaluation_interval: 15s     # how often alert rules are checked
@@ -7,20 +7,23 @@ global:
 rule_files:
   - /etc/prometheus/alerts.yml
 
+# Where firing alerts are sent (Alertmanager groups them and decides who to notify)
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["alertmanager:9093"]
+
 scrape_configs:
-  # Prometheus monitors itself
+  # ---- Prometheus itself ----
   - job_name: prometheus
     static_configs: [{ targets: ["localhost:9090"] }]
 
-  # nginx metrics (requests, connections) via the exporter
+  # ---- Our app ----
+  # nginx's own counters (connections, requests) via the exporter that reads /stub_status
   - job_name: nginx
     static_configs: [{ targets: ["nginx-exporter:9113"] }]
 
-  # OpenTelemetry collector's own metrics + anything apps send through it
-  - job_name: otel-collector
-    static_configs: [{ targets: ["otel-collector:8888", "otel-collector:8889"] }]
-
-  # SRE: probe the site from outside like a user would -> probe_success (1 = up)
+  # Black-box: is the site up for a USER? (the SLI behind our 99.9% SLO)
   - job_name: blackbox-http
     metrics_path: /probe
     params: { module: [http_2xx] }
@@ -32,3 +35,30 @@ scrape_configs:
         target_label: instance
       - target_label: __address__
         replacement: blackbox:9115
+
+  # App metrics that arrive through OpenTelemetry. For us: the RED metrics the collector's
+  # spanmetrics connector builds from nginx's traces (traces_span_metrics_*).
+  # The app's service.name ends up in the label exported_job="belastingbuddy".
+  - job_name: otel-collector
+    static_configs: [{ targets: ["otel-collector:8889"] }]
+
+  # The collector's own health (spans/logs/metrics accepted, refused, exported)
+  - job_name: otel-collector-internal
+    static_configs: [{ targets: ["otel-collector:8888"] }]
+
+  # ---- Host and containers ----
+  - job_name: node-exporter     # host CPU / memory / disk (on Mac: Docker Desktop's Linux VM)
+    static_configs: [{ targets: ["node-exporter:9100"] }]
+
+  - job_name: cadvisor          # per-container CPU / memory / network
+    static_configs: [{ targets: ["cadvisor:8080"] }]
+
+  # ---- The observability stack watching itself ----
+  - job_name: alertmanager
+    static_configs: [{ targets: ["alertmanager:9093"] }]
+  - job_name: grafana
+    static_configs: [{ targets: ["grafana:3000"] }]
+  - job_name: loki
+    static_configs: [{ targets: ["loki:3100"] }]
+  - job_name: tempo
+    static_configs: [{ targets: ["tempo:3200"] }]

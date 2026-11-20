@@ -1,0 +1,54 @@
+# Grafana "provisioning" = config as code. Grafana reads this at start-up,
+# so every datasource exists without anybody clicking in the UI.
+apiVersion: 1
+datasources:
+  - name: Prometheus            # metrics  (PromQL)
+    uid: prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+
+  - name: Alertmanager          # firing alerts
+    uid: alertmanager
+    type: alertmanager
+    access: proxy
+    url: http://alertmanager:9093
+    jsonData: { implementation: prometheus }
+
+  - name: Loki                  # logs  (LogQL)
+    uid: loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    jsonData:
+      # log -> trace: a "Tempo" link next to every log line that has a trace_id
+      derivedFields:
+        - name: TraceID
+          matcherType: label            # trace_id is structured metadata on OTLP logs
+          matcherRegex: trace_id
+          url: "$${__value.raw}"
+          datasourceUid: tempo
+          urlDisplayLabel: View trace
+
+  - name: Tempo                 # traces  (TraceQL)
+    uid: tempo
+    type: tempo
+    access: proxy
+    url: http://tempo:3200
+    jsonData:
+      # trace -> logs: the "Logs for this span" button opens the matching Loki lines
+      tracesToLogsV2:
+        datasourceUid: loki
+        filterByTraceID: true
+        spanStartTimeShift: "-1m"       # a span lasts a few ms; widen the window a little
+        spanEndTimeShift: "1m"
+        customQuery: true
+        query: '{service_name="$${__span.tags["service.name"]}"} | trace_id="$${__span.traceId}"'
+      # trace -> metrics: jump from a span to its RED metrics
+      tracesToMetrics:
+        datasourceUid: prometheus
+        queries:
+          - name: Request rate
+            query: 'sum(rate(traces_span_metrics_calls_total{service_name="belastingbuddy"}[1m]))'
+      nodeGraph: { enabled: true }
